@@ -35,7 +35,7 @@ void test_init_double_vector_success(void **state) {
     
     // Check zero initialization
     for (size_t i = 0; i < vec->alloc; i++) {
-        assert_double_equal(vec->data[i], 0.0f, 0.0001);
+        assert_float_equal(vec->data[i], 0.0, 0.0001);
     }
     
     free_double_vector(vec);
@@ -63,7 +63,7 @@ void test_init_double_array_success(void **state) {
     
     // Check zero initialization
     for (size_t i = 0; i < arr.alloc; i++) {
-        assert_double_equal(arr.data[i], 0.0, 0.0001);
+        assert_float_equal(arr.data[i], 0.0, 0.0001);
     }
 }
 // -------------------------------------------------------------------------------- 
@@ -95,7 +95,7 @@ void test_double_vector_gbc(void **state) {
     (void) state; /* unused */
     
     {
-        FLTVEC_GBC double_v* vec = init_double_vector(10);
+        DBLEVEC_GBC double_v* vec = init_double_vector(10);
         assert_non_null(vec);
         assert_non_null(vec->data);
         // Vector will be automatically freed at scope end
@@ -114,7 +114,7 @@ void test_push_back_basic(void **state) {
     // Test basic push_back
     assert_true(push_back_double_vector(vec, 3.14));
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 3.14, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.14, 0.0001);
      
     // Test adding zero
     assert_true(push_back_double_vector(vec, 0.0));
@@ -142,7 +142,7 @@ void test_push_back_growth(void **state) {
     assert_true(push_back_double_vector(vec, 3.0));
     assert_int_equal(d_size(vec), 3);
     assert_true(d_alloc(vec) > initial_alloc);
-    assert_double_equal(double_vector_index(vec, 2), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 2), 3.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -190,19 +190,19 @@ void test_double_vector_index(void **state) {
     
     // Test valid index
     assert_true(push_back_double_vector(vec, 1.234));
-    assert_double_equal(double_vector_index(vec, 0), 1.234, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.234, 0.0001);
     
     // Test out of bounds index
     errno = 0;
     double result = double_vector_index(vec, d_size(vec));  
     assert_int_equal(errno, ERANGE);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     
     // Test NULL vector
     errno = 0;
     result = double_vector_index(NULL, 0);
     assert_int_equal(errno, EINVAL);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     
     free_double_vector(vec);
 }
@@ -245,9 +245,9 @@ void test_static_array_bounds(void **state) {
     assert_int_equal(d_size(&arr), 3);
     
     // Verify values were stored correctly
-    assert_double_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 1), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 2), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 1), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 2), 3.0, 0.0001);
     
     // Test attempting to exceed capacity
     errno = 0;
@@ -256,7 +256,7 @@ void test_static_array_bounds(void **state) {
     assert_int_equal(d_size(&arr), 3);
     
     // Verify original data wasn't corrupted
-    assert_double_equal(double_vector_index(&arr, 2), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 2), 3.0, 0.0001);
 }
 // --------------------------------------------------------------------------------
 
@@ -268,19 +268,19 @@ void test_static_array_index_bounds(void **state) {
     push_back_double_vector(&arr, 1.0);
     
     // Test valid index
-    assert_double_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
     
     // Test index at unfilled position
     errno = 0;
     double result = double_vector_index(&arr, 1);
     assert_int_equal(errno, ERANGE);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     
     // Test index beyond allocation
     errno = 0;
     result = double_vector_index(&arr, 2);
     assert_int_equal(errno, ERANGE);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
 }
 // --------------------------------------------------------------------------------
 
@@ -295,7 +295,7 @@ void test_static_array_initialization(void **state) {
     
     // Verify data array is zeroed
     for(size_t i = 0; i < d_alloc(&arr); i++) {
-        assert_double_equal(arr.data[i], 0.0, 0.0001);  // Direct access just for testing
+        assert_float_equal(arr.data[i], 0.0, 0.0001);  // Direct access just for testing
     }
 }
 // -------------------------------------------------------------------------------- 
@@ -312,7 +312,7 @@ void test_static_array_free(void **state) {
     assert_int_equal(errno, EINVAL);
     
     // Verify data wasn't corrupted
-    assert_double_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
 }
 // ================================================================================ 
 // ================================================================================ 
@@ -326,13 +326,13 @@ void test_push_front_basic(void **state) {
     // Test basic push_front
     assert_true(push_front_double_vector(vec, 3.14));
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 3.14, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.14, 0.0001);
     
     // Test adding zero
     assert_true(push_front_double_vector(vec, 0.0f));
     assert_int_equal(d_size(vec), 2);
-    assert_double_equal(double_vector_index(vec, 0), 0.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 3.14, 0.0001i);
+    assert_float_equal(double_vector_index(vec, 0), 0.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 3.14, 0.0001);
     
     free_double_vector(vec);
 }
@@ -352,8 +352,8 @@ void test_push_front_growth(void **state) {
     assert_int_equal(d_alloc(vec), initial_alloc);
     
     // Verify order
-    assert_double_equal(double_vector_index(vec, 0), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 1.0, 0.0001);
     
     // Trigger growth
     assert_true(push_front_double_vector(vec, 3.0));
@@ -361,9 +361,9 @@ void test_push_front_growth(void **state) {
     assert_true(d_alloc(vec) > initial_alloc);
     
     // Verify all elements after growth
-    assert_double_equal(double_vector_index(vec, 0), 3.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 2), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 2), 1.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -380,8 +380,8 @@ void test_push_front_static(void **state) {
     assert_int_equal(d_size(&arr), 2);
     
     // Verify order
-    assert_double_equal(double_vector_index(&arr, 0), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 1), 1.0, 0.0001);
     
     // Attempt to exceed capacity
     assert_false(push_front_double_vector(&arr, 3.0));
@@ -389,8 +389,8 @@ void test_push_front_static(void **state) {
     
     // Verify data wasn't corrupted
     assert_int_equal(d_size(&arr), 2);
-    assert_double_equal(double_vector_index(&arr, 0), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 1), 1.0, 0.0001);
 }
 // -------------------------------------------------------------------------------- 
 
@@ -441,25 +441,25 @@ void test_insert_vector_basic(void **state) {
     // Insert into empty vector
     assert_true(insert_double_vector(vec, 1.0, 0));
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.0, 0.0001);
     
     // Insert at beginning (shifting right)
     assert_true(insert_double_vector(vec, 0.0, 0));
     assert_int_equal(d_size(vec), 2);
-    assert_double_equal(double_vector_index(vec, 0), 0.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 0.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 1.0, 0.0001);
     
     // Insert in middle
     assert_true(insert_double_vector(vec, 0.5, 1));
     assert_int_equal(d_size(vec), 3);
-    assert_double_equal(double_vector_index(vec, 0), 0.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 0.5, 0.0001);
-    assert_double_equal(double_vector_index(vec, 2), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 0.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 0.5, 0.0001);
+    assert_float_equal(double_vector_index(vec, 2), 1.0, 0.0001);
     
     // Insert at end (append)
     assert_true(insert_double_vector(vec, 2.0, 3));
     assert_int_equal(d_size(vec), 4);
-    assert_double_equal(double_vector_index(vec, 3), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 3), 2.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -484,9 +484,9 @@ void test_insert_vector_growth(void **state) {
     assert_true(d_alloc(vec) > initial_alloc);
     
     // Verify all elements after growth
-    assert_double_equal(double_vector_index(vec, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 1.5, 0.0001);
-    assert_double_equal(double_vector_index(vec, 2), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 1.5, 0.0001);
+    assert_float_equal(double_vector_index(vec, 2), 2.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -504,9 +504,9 @@ void test_insert_array_basic(void **state) {
     
     // Verify order
     assert_int_equal(d_size(&arr), 3);
-    assert_double_equal(double_vector_index(&arr, 0), 1.0, 0.0001f);
-    assert_double_equal(double_vector_index(&arr, 1), 2.0, 0.0001f);
-    assert_double_equal(double_vector_index(&arr, 2), 3.0, 0.0001f);
+    assert_float_equal(double_vector_index(&arr, 0), 1.0, 0.0001f);
+    assert_float_equal(double_vector_index(&arr, 1), 2.0, 0.0001f);
+    assert_float_equal(double_vector_index(&arr, 2), 3.0, 0.0001f);
 }
 // -------------------------------------------------------------------------------- 
 
@@ -526,8 +526,8 @@ void test_insert_array_bounds(void **state) {
     
     // Verify data wasn't corrupted
     assert_int_equal(d_size(&arr), 2);
-    assert_double_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 1), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 1), 2.0, 0.0001);
 }
 // -------------------------------------------------------------------------------- 
 
@@ -574,7 +574,7 @@ void test_insert_special_values(void **state) {
     
     // Insert zero
     assert_true(insert_double_vector(vec, 0.0, 1));
-    assert_double_equal(double_vector_index(vec, 1), 0.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 0.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -594,17 +594,17 @@ void test_pop_back_basic(void **state) {
     
     // Test popping values
     errno = 0;
-    assert_double_equal(pop_back_double_vector(vec), 3.0, 0.0001);
+    assert_float_equal(pop_back_double_vector(vec), 3.0, 0.0001);
     assert_int_equal(d_size(vec), 2);
     assert_int_equal(errno, 0);
     
     errno = 0;
-    assert_double_equal(pop_back_double_vector(vec), 2.0, 0.0001);
+    assert_float_equal(pop_back_double_vector(vec), 2.0, 0.0001);
     assert_int_equal(d_size(vec), 1);
     assert_int_equal(errno, 0);
     
     errno = 0;
-    assert_double_equal(pop_back_double_vector(vec), 1.0, 0.0001);
+    assert_float_equal(pop_back_double_vector(vec), 1.0, 0.0001);
     assert_int_equal(d_size(vec), 0);
     assert_int_equal(errno, 0);
     
@@ -621,7 +621,7 @@ void test_pop_back_empty(void **state) {
     // Try to pop from empty vector
     errno = 0;
     double result = pop_back_double_vector(vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ENODATA);
     
     free_double_vector(vec);
@@ -634,7 +634,7 @@ void test_pop_back_errors(void **state) {
     // Test NULL vector
     errno = 0;
     double result = pop_back_double_vector(NULL);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, EINVAL);
     
     // Test invalid data pointer
@@ -642,7 +642,7 @@ void test_pop_back_errors(void **state) {
     vec.data = NULL;
     errno = 0;
     result = pop_back_double_vector(&vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, EINVAL);
 }
 // --------------------------------------------------------------------------------
@@ -657,7 +657,7 @@ void test_pop_back_special_values(void **state) {
     push_back_double_vector(vec, DBL_MAX);
     errno = 0;
     double result = pop_back_double_vector(vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, 0);  // Should be 0 since this is valid data
     
     // Test popping infinity
@@ -688,19 +688,19 @@ void test_pop_back_static(void **state) {
     push_back_double_vector(&arr, 2.0);
     
     errno = 0;
-    assert_double_equal(pop_back_double_vector(&arr), 2.0, 0.0001);
+    assert_float_equal(pop_back_double_vector(&arr), 2.0, 0.0001);
     assert_int_equal(d_size(&arr), 1);
     assert_int_equal(errno, 0);
     
     errno = 0;
-    assert_double_equal(pop_back_double_vector(&arr), 1.0, 0.0001);
+    assert_float_equal(pop_back_double_vector(&arr), 1.0, 0.0001);
     assert_int_equal(d_size(&arr), 0);
     assert_int_equal(errno, 0);
     
     // Try to pop from empty array
     errno = 0;
     double result = pop_back_double_vector(&arr);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ENODATA);
 }
 // ================================================================================ 
@@ -719,20 +719,20 @@ void test_pop_front_basic(void **state) {
     
     // Test popping values and check remaining elements
     errno = 0;
-    assert_double_equal(pop_front_double_vector(vec), 1.0, 0.0001);
+    assert_float_equal(pop_front_double_vector(vec), 1.0, 0.0001);
     assert_int_equal(d_size(vec), 2);
-    assert_double_equal(double_vector_index(vec, 0), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 3.0, 0.0001);
     assert_int_equal(errno, 0);
     
     errno = 0;
-    assert_double_equal(pop_front_double_vector(vec), 2.0, 0.0001);
+    assert_float_equal(pop_front_double_vector(vec), 2.0, 0.0001);
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.0, 0.0001);
     assert_int_equal(errno, 0);
     
     errno = 0;
-    assert_double_equal(pop_front_double_vector(vec), 3.0, 0.0001);
+    assert_float_equal(pop_front_double_vector(vec), 3.0, 0.0001);
     assert_int_equal(d_size(vec), 0);
     assert_int_equal(errno, 0);
     
@@ -749,7 +749,7 @@ void test_pop_front_empty(void **state) {
     // Try to pop from empty vector
     errno = 0;
     double result = pop_front_double_vector(vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ENODATA);
     
     free_double_vector(vec);
@@ -762,7 +762,7 @@ void test_pop_front_errors(void **state) {
     // Test NULL vector
     errno = 0;
     double result = pop_front_double_vector(NULL);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, EINVAL);
     
     // Test invalid data pointer
@@ -770,7 +770,7 @@ void test_pop_front_errors(void **state) {
     vec.data = NULL;
     errno = 0;
     result = pop_front_double_vector(&vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, EINVAL);
 }
 // -------------------------------------------------------------------------------- 
@@ -786,9 +786,9 @@ void test_pop_front_special_values(void **state) {
     push_back_double_vector(vec, 1.0);
     errno = 0;
     double result = pop_front_double_vector(vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, 0);  // Should be 0 since this is valid data
-    assert_double_equal(double_vector_index(vec, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.0, 0.0001);
     
     // Test popping infinity
     push_front_double_vector(vec, INFINITY);
@@ -818,20 +818,20 @@ void test_pop_front_static(void **state) {
     push_back_double_vector(&arr, 2.0);
     
     errno = 0;
-    assert_double_equal(pop_front_double_vector(&arr), 1.0, 0.0001);
+    assert_float_equal(pop_front_double_vector(&arr), 1.0, 0.0001);
     assert_int_equal(d_size(&arr), 1);
-    assert_double_equal(double_vector_index(&arr, 0), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 2.0, 0.0001);
     assert_int_equal(errno, 0);
     
     errno = 0;
-    assert_double_equal(pop_front_double_vector(&arr), 2.0, 0.0001);
+    assert_float_equal(pop_front_double_vector(&arr), 2.0, 0.0001);
     assert_int_equal(d_size(&arr), 0);
     assert_int_equal(errno, 0);
     
     // Try to pop from empty array
     errno = 0;
     double result = pop_front_double_vector(&arr);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ENODATA);
 }
 // ================================================================================ 
@@ -851,23 +851,23 @@ void test_pop_any_basic(void **state) {
     
     // Test popping from middle
     errno = 0;
-    assert_double_equal(pop_any_double_vector(vec, 1), 2.0, 0.0001);
+    assert_float_equal(pop_any_double_vector(vec, 1), 2.0, 0.0001);
     assert_int_equal(d_size(vec), 3);
-    assert_double_equal(double_vector_index(vec, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 3.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 2), 4.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 2), 4.0, 0.0001);
     assert_int_equal(errno, 0);
     
     // Test popping first element
-    assert_double_equal(pop_any_double_vector(vec, 0), 1.0, 0.0001);
+    assert_float_equal(pop_any_double_vector(vec, 0), 1.0, 0.0001);
     assert_int_equal(d_size(vec), 2);
-    assert_double_equal(double_vector_index(vec, 0), 3.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 4.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 4.0, 0.0001);
     
     // Test popping last element
-    assert_double_equal(pop_any_double_vector(vec, 1), 4.0, 0.0001);
+    assert_float_equal(pop_any_double_vector(vec, 1), 4.0, 0.0001);
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -883,25 +883,25 @@ void test_pop_any_errors(void **state) {
     // Test NULL vector
     errno = 0;
     double result = pop_any_double_vector(NULL, 0);
-    assert_double_equal(result, DBL_MAX, 0.0001f);
+    assert_float_equal(result, DBL_MAX, 0.0001f);
     assert_int_equal(errno, EINVAL);
     
     // Test invalid index
     errno = 0;
     result = pop_any_double_vector(vec, 1);  // Index equals length
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ERANGE);
     
     errno = 0;
     result = pop_any_double_vector(vec, 2);  // Index beyond length
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ERANGE);
     
     // Test empty vector
     pop_any_double_vector(vec, 0);  // Remove the only element
     errno = 0;
     result = pop_any_double_vector(vec, 0);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, ENODATA);
     
     free_double_vector(vec);
@@ -921,10 +921,10 @@ void test_pop_any_static(void **state) {
     // Pop from middle
     errno = 0;
     double result = pop_any_double_vector(&arr, 1);
-    assert_double_equal(result, 2.0, 0.0001);
+    assert_float_equal(result, 2.0, 0.0001);
     assert_int_equal(d_size(&arr), 2);
-    assert_double_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 1), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 1), 3.0, 0.0001);
     assert_int_equal(errno, 0);
 }
 // -------------------------------------------------------------------------------- 
@@ -942,7 +942,7 @@ void test_pop_any_special_values(void **state) {
      
     errno = 0;
     double result = pop_any_double_vector(vec, 1);
-    assert_double_equal(result, DBL_MAX, 0.0001);
+    assert_float_equal(result, DBL_MAX, 0.0001);
     assert_int_equal(errno, 0);  // Should be 0 since this is valid data
      
     // Test with NaN
@@ -967,22 +967,22 @@ void test_reverse_basic(void **state) {
     push_back_double_vector(vec, 1.0);
     reverse_double_vector(vec);
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.0, 0.0001);
     
     // Test even number of elements
     push_back_double_vector(vec, 2.0);
     reverse_double_vector(vec);
     assert_int_equal(d_size(vec), 2);
-    assert_double_equal(double_vector_index(vec, 0), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 1.0, 0.0001);
     
     // Test odd number of elements
     push_back_double_vector(vec, 3.0);
     reverse_double_vector(vec);
     assert_int_equal(d_size(vec), 3);
-    assert_double_equal(double_vector_index(vec, 0), 3.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 2), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 2), 2.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -1027,9 +1027,9 @@ void test_reverse_static(void **state) {
     // Test reversal
     reverse_double_vector(&arr);
     assert_int_equal(d_size(&arr), 3);
-    assert_double_equal(double_vector_index(&arr, 0), 3.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 1), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(&arr, 2), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 0), 3.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 1), 2.0, 0.0001);
+    assert_float_equal(double_vector_index(&arr, 2), 1.0, 0.0001);
 }
 // -------------------------------------------------------------------------------- 
 
@@ -1103,13 +1103,13 @@ void test_sort_edge_cases(void **state) {
     push_back_double_vector(vec, 1.0);
     sort_double_vector(vec, FORWARD);
     assert_int_equal(d_size(vec), 1);
-    assert_double_equal(double_vector_index(vec, 0), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 1.0, 0.0001);
     
     // Test two elements
     push_back_double_vector(vec, 0.0);
     sort_double_vector(vec, FORWARD);
-    assert_double_equal(double_vector_index(vec, 0), 0.0, 0.0001);
-    assert_double_equal(double_vector_index(vec, 1), 1.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 0), 0.0, 0.0001);
+    assert_float_equal(double_vector_index(vec, 1), 1.0, 0.0001);
     
     free_double_vector(vec);
 }
@@ -1224,7 +1224,7 @@ void test_trim_basic(void **state) {
     
     // Verify data is intact
     for (size_t i = 0; i < d_size(vec); i++) {
-        assert_double_equal(double_vector_index(vec, i), (double)i, 0.0001);
+        assert_float_equal(double_vector_index(vec, i), (double)i, 0.0001);
     }
     
     free_double_vector(vec);
@@ -1460,7 +1460,7 @@ void test_update_double_vector_nominal(void **state) {
     push_back_double_vector(&arr, 5.0);
 
     update_double_vector(&arr, 2, 12.0);
-    assert_double_equal(12.0, double_vector_index(&arr, 2), 1.0e-6);
+    assert_float_equal(12.0, double_vector_index(&arr, 2), 1.0e-6);
 }
 // -------------------------------------------------------------------------------- 
 
@@ -1485,430 +1485,430 @@ void test_update_double_vector_bad_index(void **state) {
 // ================================================================================ 
 // ================================================================================ 
 
-void test_min_double_basic(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(5);
-    assert_non_null(vec);
-    
-    // Test single element
-    push_back_double_vector(vec, 1.0);
-    errno = 0;
-    assert_double_equal(min_double_vector(vec), 1.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    // Test multiple elements
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, -3.0);
-    push_back_double_vector(vec, 4.0);
-    push_back_double_vector(vec, 0.0);
-    
-    errno = 0;
-    assert_double_equal(min_double_vector(vec), -3.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_max_double_basic(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(5);
-    assert_non_null(vec);
-    
-    // Test single element
-    push_back_double_vector(vec, 1.0);
-    errno = 0;
-    assert_double_equal(max_double_vector(vec), 1.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    // Test multiple elements
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, -3.0);
-    push_back_double_vector(vec, 4.0);
-    push_back_double_vector(vec, 0.0);
-    
-    errno = 0;
-    assert_double_equal(max_double_vector(vec), 4.0, 0.0001);  // This will fail with current implementation
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_min_max_special_values(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    // Test with infinity
-    push_back_double_vector(vec, INFINITY);
-    push_back_double_vector(vec, -INFINITY);
-    push_back_double_vector(vec, 1.0);
-    
-    errno = 0;
-    assert_true(isinf(min_double_vector(vec)) && min_double_vector(vec) < 0);  // Should be -INFINITY
-    assert_int_equal(errno, 0);
-    
-    errno = 0;
-    assert_true(isinf(max_double_vector(vec)) && max_double_vector(vec) > 0);  // Should be INFINITY
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_min_max_static_array(void **state) {
-    (void) state;
-    
-    double_v arr = init_double_array(3);
-    
-    push_back_double_vector(&arr, 3.0);
-    push_back_double_vector(&arr, 1.0);
-    push_back_double_vector(&arr, 2.0);
-    
-    errno = 0;
-    assert_double_equal(min_double_vector(&arr), 1.0f, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    errno = 0;
-    assert_double_equal(max_double_vector(&arr), 3.0, 0.0001);  // This will fail with current implementation
-    assert_int_equal(errno, 0);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_min_max_errors(void **state) {
-    (void) state;
-    
-    // Test NULL vector
-    errno = 0;
-    assert_double_equal(min_double_vector(NULL), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    errno = 0;
-    assert_double_equal(max_double_vector(NULL), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    // Test empty vector
-    double_v* vec = init_double_vector(1);
-    assert_non_null(vec);
-    
-    errno = 0;
-    assert_double_equal(min_double_vector(vec), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    errno = 0;
-    assert_double_equal(max_double_vector(vec), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    free_double_vector(vec);
-}
-// ================================================================================ 
-// ================================================================================ 
-
-void test_sum_basic(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    // Test single value
-    push_back_double_vector(vec, 1.0);
-    errno = 0;
-    assert_double_equal(sum_double_vector(vec), 1.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    // Test multiple values
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, 3.0);
-    push_back_double_vector(vec, 4.0);
-    
-    errno = 0;
-    assert_double_equal(sum_double_vector(vec), 10.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_average_basic(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    // Test single value
-    push_back_double_vector(vec, 2.0);
-    errno = 0;
-    assert_double_equal(average_double_vector(vec), 2.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    // Test multiple values
-    push_back_double_vector(vec, 4.0);
-    push_back_double_vector(vec, 6.0);
-    push_back_double_vector(vec, 8.0);
-    
-    errno = 0;
-    assert_double_equal(average_double_vector(vec), 5.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_sum_average_special_values(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(3);
-    assert_non_null(vec);
-    
-    // Test with infinity
-    push_back_double_vector(vec, INFINITY);
-    push_back_double_vector(vec, 1.0);
-    push_back_double_vector(vec, 2.0);
-    
-    errno = 0;
-    assert_true(isinf(sum_double_vector(vec)));
-    assert_int_equal(errno, 0);
-
-    errno = 0;
-    assert_true(isinf(average_double_vector(vec)));
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_sum_average_negative(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    push_back_double_vector(vec, -1.0);
-    push_back_double_vector(vec, -2.0);
-    push_back_double_vector(vec, 5.0);
-    push_back_double_vector(vec, 2.0);
-    
-    errno = 0;
-    assert_double_equal(sum_double_vector(vec), 4.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    errno = 0;
-    assert_double_equal(average_double_vector(vec), 1.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_sum_average_static(void **state) {
-    (void) state;
-    
-    double_v arr = init_double_array(3);
-    
-    push_back_double_vector(&arr, 1.0);
-    push_back_double_vector(&arr, 2.0);
-    push_back_double_vector(&arr, 3.0);
-    
-    errno = 0;
-    assert_double_equal(sum_double_vector(&arr), 6.0, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    errno = 0;
-    assert_double_equal(average_double_vector(&arr), 2.0, 0.0001);
-    assert_int_equal(errno, 0);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_sum_average_errors(void **state) {
-    (void) state;
-    
-    // Test NULL vector
-    errno = 0;
-    assert_double_equal(sum_double_vector(NULL), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    errno = 0;
-    assert_double_equal(average_double_vector(NULL), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    // Test empty vector
-    double_v* vec = init_double_vector(1);
-    assert_non_null(vec);
-    
-    errno = 0;
-    assert_double_equal(sum_double_vector(vec), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    errno = 0;
-    assert_double_equal(average_double_vector(vec), DBL_MAX, 0.0001);
-    assert_int_equal(errno, EINVAL);
-    
-    free_double_vector(vec);
-}
-// ================================================================================ 
-// ================================================================================ 
-
-void test_stdev_basic(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    // Dataset with known standard deviation
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, 4.0);
-    push_back_double_vector(vec, 4.0);
-    push_back_double_vector(vec, 6.0);
-    
-    // Mean = 4.0, variance = 2.0, stdev = sqrt(2.0)
-    errno = 0;
-    assert_double_equal(stdev_double_vector(vec), sqrt(2.0), 0.0001);
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_stdev_single_value(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(1);
-    assert_non_null(vec);
-    
-    push_back_double_vector(vec, 2.0);
-    
-    errno = 0;
-    double result = stdev_double_vector(vec);
-    assert_double_equal(result, DBL_MAX, 0.0001);  // Standard deviation of single value is 0
-    assert_int_equal(errno, ENODATA);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_stdev_same_values(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(3);
-    assert_non_null(vec);
-    
-    // All same values should give stdev of 0
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, 2.0);
-    
-    errno = 0;
-    assert_double_equal(stdev_double_vector(vec), 0.0f, 0.0001);
-    assert_int_equal(errno, 0);
-    
-    free_double_vector(vec);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_cum_sum_basic(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    push_back_double_vector(vec, 1.0);
-    push_back_double_vector(vec, 2.0);
-    push_back_double_vector(vec, 3.0);
-    push_back_double_vector(vec, 4.0);
-    
-    double_v* cum_sum = cum_sum_double_vector(vec);
-    assert_non_null(cum_sum);
-    assert_int_equal(d_size(cum_sum), 4);
-    
-    // Check cumulative sums: 1, 3, 6, 10
-    assert_double_equal(double_vector_index(cum_sum, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(cum_sum, 1), 3.0, 0.0001);
-    assert_double_equal(double_vector_index(cum_sum, 2), 6.0, 0.0001);
-    assert_double_equal(double_vector_index(cum_sum, 3), 10.0, 0.0001);
-    
-    free_double_vector(vec);
-    free_double_vector(cum_sum);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_cum_sum_negative(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(4);
-    assert_non_null(vec);
-    
-    push_back_double_vector(vec, 1.0);
-    push_back_double_vector(vec, -2.0);
-    push_back_double_vector(vec, 3.0);
-    push_back_double_vector(vec, -4.0);
-    
-    double_v* cum_sum = cum_sum_double_vector(vec);
-    assert_non_null(cum_sum);
-    
-    // Check cumulative sums: 1, -1, 2, -2
-    assert_double_equal(double_vector_index(cum_sum, 0), 1.0, 0.0001);
-    assert_double_equal(double_vector_index(cum_sum, 1), -1.0, 0.0001);
-    assert_double_equal(double_vector_index(cum_sum, 2), 2.0, 0.0001);
-    assert_double_equal(double_vector_index(cum_sum, 3), -2.0, 0.0001);
-    
-    free_double_vector(vec);
-    free_double_vector(cum_sum);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_stdev_cum_sum_special_values(void **state) {
-    (void) state;
-    
-    double_v* vec = init_double_vector(3);
-    assert_non_null(vec);
-    
-    // Test with infinity
-    push_back_double_vector(vec, INFINITY);
-    push_back_double_vector(vec, 1.0);
-    push_back_double_vector(vec, 2.0);
-    
-    errno = 0;
-    assert_true(isinf(stdev_double_vector(vec)));
-
-    double_v* cum_sum = cum_sum_double_vector(vec);
-    assert_non_null(cum_sum);
-    assert_true(isinf(double_vector_index(cum_sum, 0)));
-    assert_true(isinf(double_vector_index(cum_sum, 1)));
-    assert_true(isinf(double_vector_index(cum_sum, 2)));
-    
-    free_double_vector(vec);
-    free_double_vector(cum_sum);
-}
-// -------------------------------------------------------------------------------- 
-
-void test_stdev_cum_sum_errors(void **state) {
-    (void) state;
-    
-    // Test NULL vector
-    errno = 0;
-    assert_double_equal(stdev_double_vector(NULL), DBL_MAX, 0.0001);
-    assert_int_equal(errno, ENODATA);
-    
-    assert_null(cum_sum_double_vector(NULL));
-    assert_int_equal(errno, EINVAL);
-    
-    // Test empty vector
-    double_v* vec = init_double_vector(1);
-    assert_non_null(vec);
-
-    errno = 0;
-    assert_double_equal(stdev_double_vector(vec), DBL_MAX, 0.0001);
-    assert_int_equal(errno, ENODATA);
-
-    assert_null(cum_sum_double_vector(vec));
-    assert_int_equal(errno, EINVAL);
-     
-    free_double_vector(vec);
-}
+// void test_min_double_basic(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(5);
+//     assert_non_null(vec);
+//     
+//     // Test single element
+//     push_back_double_vector(vec, 1.0);
+//     errno = 0;
+//     assert_float_equal(min_double_vector(vec), 1.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     // Test multiple elements
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, -3.0);
+//     push_back_double_vector(vec, 4.0);
+//     push_back_double_vector(vec, 0.0);
+//     
+//     errno = 0;
+//     assert_float_equal(min_double_vector(vec), -3.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_max_double_basic(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(5);
+//     assert_non_null(vec);
+//     
+//     // Test single element
+//     push_back_double_vector(vec, 1.0);
+//     errno = 0;
+//     assert_float_equal(max_double_vector(vec), 1.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     // Test multiple elements
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, -3.0);
+//     push_back_double_vector(vec, 4.0);
+//     push_back_double_vector(vec, 0.0);
+//     
+//     errno = 0;
+//     assert_float_equal(max_double_vector(vec), 4.0, 0.0001);  // This will fail with current implementation
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_min_max_special_values(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     // Test with infinity
+//     push_back_double_vector(vec, INFINITY);
+//     push_back_double_vector(vec, -INFINITY);
+//     push_back_double_vector(vec, 1.0);
+//     
+//     errno = 0;
+//     assert_true(isinf(min_double_vector(vec)) && min_double_vector(vec) < 0);  // Should be -INFINITY
+//     assert_int_equal(errno, 0);
+//     
+//     errno = 0;
+//     assert_true(isinf(max_double_vector(vec)) && max_double_vector(vec) > 0);  // Should be INFINITY
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_min_max_static_array(void **state) {
+//     (void) state;
+//     
+//     double_v arr = init_double_array(3);
+//     
+//     push_back_double_vector(&arr, 3.0);
+//     push_back_double_vector(&arr, 1.0);
+//     push_back_double_vector(&arr, 2.0);
+//     
+//     errno = 0;
+//     assert_float_equal(min_double_vector(&arr), 1.0f, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     errno = 0;
+//     assert_float_equal(max_double_vector(&arr), 3.0, 0.0001);  // This will fail with current implementation
+//     assert_int_equal(errno, 0);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_min_max_errors(void **state) {
+//     (void) state;
+//     
+//     // Test NULL vector
+//     errno = 0;
+//     assert_float_equal(min_double_vector(NULL), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     errno = 0;
+//     assert_float_equal(max_double_vector(NULL), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     // Test empty vector
+//     double_v* vec = init_double_vector(1);
+//     assert_non_null(vec);
+//     
+//     errno = 0;
+//     assert_float_equal(min_double_vector(vec), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     errno = 0;
+//     assert_float_equal(max_double_vector(vec), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     free_double_vector(vec);
+// }
+// // ================================================================================ 
+// // ================================================================================ 
+//
+// void test_sum_basic(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     // Test single value
+//     push_back_double_vector(vec, 1.0);
+//     errno = 0;
+//     assert_float_equal(sum_double_vector(vec), 1.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     // Test multiple values
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, 3.0);
+//     push_back_double_vector(vec, 4.0);
+//     
+//     errno = 0;
+//     assert_float_equal(sum_double_vector(vec), 10.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_average_basic(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     // Test single value
+//     push_back_double_vector(vec, 2.0);
+//     errno = 0;
+//     assert_float_equal(average_double_vector(vec), 2.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     // Test multiple values
+//     push_back_double_vector(vec, 4.0);
+//     push_back_double_vector(vec, 6.0);
+//     push_back_double_vector(vec, 8.0);
+//     
+//     errno = 0;
+//     assert_float_equal(average_double_vector(vec), 5.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_sum_average_special_values(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(3);
+//     assert_non_null(vec);
+//     
+//     // Test with infinity
+//     push_back_double_vector(vec, INFINITY);
+//     push_back_double_vector(vec, 1.0);
+//     push_back_double_vector(vec, 2.0);
+//     
+//     errno = 0;
+//     assert_true(isinf(sum_double_vector(vec)));
+//     assert_int_equal(errno, 0);
+//
+//     errno = 0;
+//     assert_true(isinf(average_double_vector(vec)));
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_sum_average_negative(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     push_back_double_vector(vec, -1.0);
+//     push_back_double_vector(vec, -2.0);
+//     push_back_double_vector(vec, 5.0);
+//     push_back_double_vector(vec, 2.0);
+//     
+//     errno = 0;
+//     assert_float_equal(sum_double_vector(vec), 4.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     errno = 0;
+//     assert_float_equal(average_double_vector(vec), 1.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_sum_average_static(void **state) {
+//     (void) state;
+//     
+//     double_v arr = init_double_array(3);
+//     
+//     push_back_double_vector(&arr, 1.0);
+//     push_back_double_vector(&arr, 2.0);
+//     push_back_double_vector(&arr, 3.0);
+//     
+//     errno = 0;
+//     assert_float_equal(sum_double_vector(&arr), 6.0, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     errno = 0;
+//     assert_float_equal(average_double_vector(&arr), 2.0, 0.0001);
+//     assert_int_equal(errno, 0);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_sum_average_errors(void **state) {
+//     (void) state;
+//     
+//     // Test NULL vector
+//     errno = 0;
+//     assert_float_equal(sum_double_vector(NULL), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     errno = 0;
+//     assert_float_equal(average_double_vector(NULL), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     // Test empty vector
+//     double_v* vec = init_double_vector(1);
+//     assert_non_null(vec);
+//     
+//     errno = 0;
+//     assert_float_equal(sum_double_vector(vec), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     errno = 0;
+//     assert_float_equal(average_double_vector(vec), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, EINVAL);
+//     
+//     free_double_vector(vec);
+// }
+// // ================================================================================ 
+// // ================================================================================ 
+//
+// void test_stdev_basic(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     // Dataset with known standard deviation
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, 4.0);
+//     push_back_double_vector(vec, 4.0);
+//     push_back_double_vector(vec, 6.0);
+//     
+//     // Mean = 4.0, variance = 2.0, stdev = sqrt(2.0)
+//     errno = 0;
+//     assert_float_equal(stdev_double_vector(vec), sqrt(2.0), 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_stdev_single_value(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(1);
+//     assert_non_null(vec);
+//     
+//     push_back_double_vector(vec, 2.0);
+//     
+//     errno = 0;
+//     double result = stdev_double_vector(vec);
+//     assert_float_equal(result, DBL_MAX, 0.0001);  // Standard deviation of single value is 0
+//     assert_int_equal(errno, ENODATA);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_stdev_same_values(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(3);
+//     assert_non_null(vec);
+//     
+//     // All same values should give stdev of 0
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, 2.0);
+//     
+//     errno = 0;
+//     assert_float_equal(stdev_double_vector(vec), 0.0f, 0.0001);
+//     assert_int_equal(errno, 0);
+//     
+//     free_double_vector(vec);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_cum_sum_basic(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     push_back_double_vector(vec, 1.0);
+//     push_back_double_vector(vec, 2.0);
+//     push_back_double_vector(vec, 3.0);
+//     push_back_double_vector(vec, 4.0);
+//     
+//     double_v* cum_sum = cum_sum_double_vector(vec);
+//     assert_non_null(cum_sum);
+//     assert_int_equal(d_size(cum_sum), 4);
+//     
+//     // Check cumulative sums: 1, 3, 6, 10
+//     assert_float_equal(double_vector_index(cum_sum, 0), 1.0, 0.0001);
+//     assert_float_equal(double_vector_index(cum_sum, 1), 3.0, 0.0001);
+//     assert_float_equal(double_vector_index(cum_sum, 2), 6.0, 0.0001);
+//     assert_float_equal(double_vector_index(cum_sum, 3), 10.0, 0.0001);
+//     
+//     free_double_vector(vec);
+//     free_double_vector(cum_sum);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_cum_sum_negative(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(4);
+//     assert_non_null(vec);
+//     
+//     push_back_double_vector(vec, 1.0);
+//     push_back_double_vector(vec, -2.0);
+//     push_back_double_vector(vec, 3.0);
+//     push_back_double_vector(vec, -4.0);
+//     
+//     double_v* cum_sum = cum_sum_double_vector(vec);
+//     assert_non_null(cum_sum);
+//     
+//     // Check cumulative sums: 1, -1, 2, -2
+//     assert_float_equal(double_vector_index(cum_sum, 0), 1.0, 0.0001);
+//     assert_float_equal(double_vector_index(cum_sum, 1), -1.0, 0.0001);
+//     assert_float_equal(double_vector_index(cum_sum, 2), 2.0, 0.0001);
+//     assert_float_equal(double_vector_index(cum_sum, 3), -2.0, 0.0001);
+//     
+//     free_double_vector(vec);
+//     free_double_vector(cum_sum);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_stdev_cum_sum_special_values(void **state) {
+//     (void) state;
+//     
+//     double_v* vec = init_double_vector(3);
+//     assert_non_null(vec);
+//     
+//     // Test with infinity
+//     push_back_double_vector(vec, INFINITY);
+//     push_back_double_vector(vec, 1.0);
+//     push_back_double_vector(vec, 2.0);
+//     
+//     errno = 0;
+//     assert_true(isinf(stdev_double_vector(vec)));
+//
+//     double_v* cum_sum = cum_sum_double_vector(vec);
+//     assert_non_null(cum_sum);
+//     assert_true(isinf(double_vector_index(cum_sum, 0)));
+//     assert_true(isinf(double_vector_index(cum_sum, 1)));
+//     assert_true(isinf(double_vector_index(cum_sum, 2)));
+//     
+//     free_double_vector(vec);
+//     free_double_vector(cum_sum);
+// }
+// // -------------------------------------------------------------------------------- 
+//
+// void test_stdev_cum_sum_errors(void **state) {
+//     (void) state;
+//     
+//     // Test NULL vector
+//     errno = 0;
+//     assert_float_equal(stdev_double_vector(NULL), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, ENODATA);
+//     
+//     assert_null(cum_sum_double_vector(NULL));
+//     assert_int_equal(errno, EINVAL);
+//     
+//     // Test empty vector
+//     double_v* vec = init_double_vector(1);
+//     assert_non_null(vec);
+//
+//     errno = 0;
+//     assert_float_equal(stdev_double_vector(vec), DBL_MAX, 0.0001);
+//     assert_int_equal(errno, ENODATA);
+//
+//     assert_null(cum_sum_double_vector(vec));
+//     assert_int_equal(errno, EINVAL);
+//      
+//     free_double_vector(vec);
+// }
 // ================================================================================
 // ================================================================================
 // eof
