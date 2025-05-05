@@ -75,6 +75,7 @@ Double Dictionary
    :caption: Contents:
 
    Vectors and Arrays <Vector>
+   Dictionary <Dictionary>
    Generic Macros <Macros>
 
 Indices and tables
