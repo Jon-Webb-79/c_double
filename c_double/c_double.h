@@ -619,6 +619,202 @@ typedef void (*dict_iterator)(const char* key, double value, void* user_data);
 bool foreach_double_dict(const dict_d* dict, dict_iterator iter, void* user_data);
 // ================================================================================ 
 // ================================================================================ 
+// VECTOR DICTIONARY PROTOTYPES 
+
+/**
+ * @typedef dict_fv
+ * @brief Opaque struct representing a dictionary for vector data types.
+ *
+ * This structure encapsulates a hash table that maps string keys to a vector of double values.
+ * The details of the struct are hidden from the user and managed internally.
+ */
+typedef struct dict_dv dict_dv;
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Creates a dictionary of double vectors
+ *
+ * @returns a dictionary of double vectors
+ */
+dict_dv* init_doublev_dict(void);
+// -------------------------------------------------------------------------------- 
+
+/**
+* @function create_doublev_dict
+* @brief Creates a key vector/array pair 
+*
+* @param dict A fict_fv data type
+* @param key a string literal key
+* @param size The size of the array or vector 
+* @return true if the function executes succesfully, false otherwise
+*/
+bool create_doublev_dict(dict_dv* dict, char* key, size_t size);
+// -------------------------------------------------------------------------------- 
+
+/**
+* @function pop_doublev_dict 
+* @brief Removes a statically or dynamically allocated array from the dictionary
+*
+* @param dict A fict_fv data type
+* @param key a string literal key
+* @return true if the function executes succesfully, false otherwise
+*/
+bool pop_doublev_dict(dict_dv* dict, const char* key);
+// -------------------------------------------------------------------------------- 
+
+/**
+* @function pop_doublev_dict 
+* @brief Returns a double_v pointer for use in vector and array functions
+*
+* @param dict A fict_fv data type
+* @param key a string literal key
+* @return a double_v pointer so it can be used in vector and array functions
+*/
+double_v* return_doublev_pointer(dict_dv* dict, const char* key);
+// -------------------------------------------------------------------------------- 
+
+/**
+* @function free_doublev_dict 
+* @brief Returns a double_v pointer for use in vector and array functions
+*
+* @param dict A fict_fv data type
+*/
+void free_doublev_dict(dict_dv* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Safely frees a vector dictionary and sets the pointer to NULL.
+ *
+ * A wrapper around `free_dict` that ensures the dictionary pointer is also set to NULL
+ * after being freed. Useful for preventing dangling pointers.
+ *
+ * @param dict Pointer to the dictionary pointer to free.
+ */
+void _free_doublev_dict(dict_dv** dict);
+// --------------------------------------------------------------------------------
+
+#if defined(__GNUC__) || defined (__clang__)
+    /**
+     * @macro DICTV_GBC
+     * @brief A macro for enabling automatic cleanup of dict_dv objects.
+     *
+     * This macro uses the cleanup attribute to automatically call `_free_vector`
+     * when the scope ends, ensuring proper memory management.
+     */
+    #define DDICTV_GBC __attribute__((cleanup(_free_doublev_dict)))
+#endif
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief determines if a key value pair exists in a vector dictionary
+ *
+ * @param dict The double vector dictionary 
+ * @param key The key value being searched for 
+ * @return true if the key value pair exists, false otherwise.
+ */
+bool has_key_doublev_dict(const dict_dv* dict, const char* key);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Inserts an already existing dynamically allocated array to dictionary
+ *
+ * @param dict The double vector dictionary 
+ * @param key The key value being searched for 
+ * @param vec A dynamically allocated array of type double_v
+ * @return true if the key value pair exists, false otherwise.
+ */
+bool insert_doublev_dict(dict_dv* dict, const char* key, double_v* vec);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Gets the number of non-empty buckets in the vector dictionary.
+ *
+ * Returns the total number of buckets in the hash table that contain at least one key-value pair.
+ *
+ * @param dict Pointer to the dictionary.
+ * @return The number of non-empty buckets.
+ */
+size_t double_dictv_size(const dict_dv* dict);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Gets the total capacity of the vector dictionary.
+ *
+ * Returns the total number of buckets currently allocated in the hash table.
+ *
+ * @param dict Pointer to the dictionary.
+ * @return The total number of buckets in the dictionary.
+ */
+size_t double_dictv_alloc(const dict_dv* dict);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Gets the total number of key-value pairs in the vector dictionary.
+ *
+ * Returns the total number of key-value pairs currently stored in the dictionary.
+ *
+ * @param dict Pointer to the dictionary.
+ * @return The number of key-value pairs.
+ */
+size_t double_dictv_hash_size(const dict_dv* dict);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Creates a deep copy of a vector double dictionary 
+ *
+ * @param original A double vector dictionary 
+ * @return A copy of a dictionary
+ */
+dict_dv* copy_doublev_dict(const dict_dv* original);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief merges to double vector dictionaries
+ *
+ * Returns a merged double vector dictionary
+ *
+ * @param dict1 Pointer to a dictionary.
+ * @param dict2 Pointer to a dictionary
+ * @param overwrite true if the values should be overwritten, false otherwise
+ * @return A merged dictionary
+ */
+dict_dv* merge_doublev_dict(const dict_dv* dict1, const dict_dv* dict2, bool overwrite);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Clears all keys and values in the vector dictionary
+ *
+ * @param dict Pointer to a dictionary.
+ */
+void clear_doublev_dict(dict_dv* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Iterator function type for double vector dictionary traversal
+ *
+ * @param key        Key string of the current entry
+ * @param value      Pointer to the associated double_v vector
+ * @param user_data  Optional context pointer passed through
+ */
+typedef void (*dict_dv_iterator)(const char* key, const double_v* value, void* user_data);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Applies a callback function to every key-value pair in a double_v dictionary
+ *
+ * Iterates over all entries in the hash table and invokes the callback for each.
+ *
+ * @param dict       Pointer to the dictionary
+ * @param iter       Function pointer to apply to each key/value pair
+ * @param user_data  Optional context pointer passed through to the callback
+ * @return true on success, false if dict or iter is NULL (errno set to EINVAL)
+ */
+bool foreach_doublev_dict(const dict_dv* dict, dict_dv_iterator iter, void* user_data);
+// -------------------------------------------------------------------------------- 
+
+string_v* get_keys_doublev_dict(const dict_dv* dict);
+// ================================================================================ 
+// ================================================================================ 
 // GENERIC MACROS
 
 /**

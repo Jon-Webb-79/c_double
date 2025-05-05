@@ -1477,6 +1477,542 @@ bool foreach_double_dict(const dict_d* dict, dict_iterator iter, void* user_data
 
     return true;
 }
+// ================================================================================ 
+// ================================================================================ 
+
+typedef struct dvdictNode {
+    char* key;
+    double_v* value;
+    struct dvdictNode* next;
+} dvdictNode;
+// --------------------------------------------------------------------------------
+
+struct dict_dv {
+    dvdictNode* keyValues;
+    size_t hash_size;
+    size_t len;
+    size_t alloc;
+};
+// --------------------------------------------------------------------------------
+
+dict_dv* init_doublev_dict(void) {
+    // Allocate the dictionary structure
+    dict_dv* dict = calloc(1, sizeof(dict_d));
+    if (!dict) {
+        errno = ENOMEM;
+        fprintf(stderr, "Failed to allocate vector dictionary structure\n");
+        return NULL;
+    }
+
+    // Allocate initial hash table array
+    dict->keyValues = calloc(hashSize, sizeof(dvdictNode));
+    if (!dict->keyValues) {
+        errno = ENOMEM;
+        fprintf(stderr, "Failed to allocate hash table array\n");
+        free(dict);
+        return NULL;
+    }
+
+    // Initialize dictionary metadata
+    dict->hash_size = 0;   // No items yet
+    dict->len = 0;         // No occupied buckets
+    dict->alloc = hashSize;
+
+    return dict;
+}
+// -------------------------------------------------------------------------------- 
+
+static bool resize_dictv(dict_dv* dict, size_t new_size) {
+    // Input validation
+    if (!dict || new_size < dict->hash_size || new_size == 0) {
+        errno = EINVAL;
+        return false;
+    }
+
+    // Ensure new_size is a power of 2 for better hash distribution
+    new_size = (size_t)pow(2, ceil(log2(new_size)));
+
+    // Use calloc for automatic zero initialization
+    dvdictNode* new_table = calloc(new_size, sizeof(dvdictNode));
+    if (!new_table) {
+        errno = ENOMEM;
+        return false;
+    }
+
+    // Keep track of old table for cleanup if something fails
+    dvdictNode* old_table = dict->keyValues;
+    const size_t old_size = dict->alloc;
+    size_t rehashed_count = 0;
+
+    // Rehash all existing entries into the new table
+    for (size_t i = 0; i < old_size; ++i) {
+        dvdictNode* current = old_table[i].next;
+        while (current) {
+            dvdictNode* next = current->next;
+
+            size_t new_index = hash_function(current->key, HASH_SEED) % new_size;
+
+            // Reinsert into the new hash bucket (head insertion)
+            current->next = new_table[new_index].next;
+            new_table[new_index].next = current;
+
+            rehashed_count++;
+            current = next;
+        }
+    }
+
+    // Validate rehash count matches the number of entries
+    if (rehashed_count != dict->hash_size) {
+        // Rollback: disconnect moved nodes so they aren't double-freed
+        for (size_t i = 0; i < new_size; ++i) {
+            dvdictNode* current = new_table[i].next;
+            while (current) {
+                dvdictNode* next = current->next;
+                current->next = NULL;
+                current = next;
+            }
+        }
+        free(new_table);
+        errno = EAGAIN;
+        return false;
+    }
+
+    // Replace table on success
+    dict->keyValues = new_table;
+    dict->alloc = new_size;
+
+    // Free old hash bucket array (nodes were moved, not freed)
+    free(old_table);
+
+    return true;
+}
+// --------------------------------------------------------------------------------
+
+bool create_doublev_dict(dict_dv* dict, char* key, size_t size) {
+    if (!dict || !key) {
+        errno = EINVAL;
+        return false;
+    }
+
+    // Resize if load factor exceeded
+    if (dict->hash_size >= dict->alloc * LOAD_FACTOR_THRESHOLD) {
+        size_t new_size = (dict->alloc < VEC_THRESHOLD)
+                          ? dict->alloc * 2
+                          : dict->alloc + VEC_FIXED_AMOUNT;
+
+        if (!resize_dictv(dict, new_size)) {
+            return false;
+        }
+    }
+
+    const size_t index = hash_function(key, HASH_SEED) % dict->alloc;
+
+    // Check for key collision
+    for (dvdictNode* current = dict->keyValues[index].next; current; current = current->next) {
+        if (strcmp(current->key, key) == 0) {
+            errno = EEXIST;
+            return false;
+        }
+    }
+
+    char* new_key = strdup(key);
+    if (!new_key) {
+        errno = ENOMEM;
+        return false;
+    }
+
+    dvdictNode* new_node = malloc(sizeof(dvdictNode));
+    if (!new_node) {
+        free(new_key);
+        errno = ENOMEM;
+        return false;
+    }
+
+    double_v* value = NULL;
+    value = init_double_vector(size);
+    if (!value) {
+        free(new_key);
+        free(new_node);
+        errno = ENOMEM;
+        return false;
+    }
+
+    new_node->key = new_key;
+    new_node->value = value;
+    new_node->next = dict->keyValues[index].next;
+    dict->keyValues[index].next = new_node;
+
+    dict->hash_size++;
+    if (new_node->next == NULL) {
+        dict->len++;
+    }
+
+    return true;
+}
+// --------------------------------------------------------------------------------
+
+bool pop_doublev_dict(dict_dv* dict, const char* key) {
+    if (!dict || !key) {
+        errno = EINVAL;
+        return false;
+    }
+
+    size_t index = hash_function(key, HASH_SEED) % dict->alloc;
+    
+    dvdictNode* prev = &dict->keyValues[index];
+    dvdictNode* current = prev->next;
+    
+    while (current) {
+        if (strcmp(current->key, key) == 0) {
+            prev->next = current->next;
+            
+            // Update dictionary metadata
+            dict->hash_size--;
+            if (!prev->next) {  // If bucket is now empty
+                dict->len--;
+            }
+            
+            // Clean up node memory
+            free_double_vector(current->value);
+            free(current->key);
+            free(current);
+            
+            return true;
+        }
+        prev = current;
+        current = current->next;
+    }
+
+    errno = ENOENT;  // Set errno when key not found
+    return false;
+}
+// -------------------------------------------------------------------------------- 
+
+double_v* return_doublev_pointer(dict_dv* dict, const char* key) {
+    if (!dict || !key) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    size_t index = hash_function(key, HASH_SEED) % dict->alloc;
+    
+    for (const dvdictNode* current = dict->keyValues[index].next; current; current = current->next) {
+        if (strcmp(current->key, key) == 0) {
+            return current->value;
+        }
+    }
+
+    errno = ENOENT;  // Set errno when key not found
+    return NULL;
+}
+// -------------------------------------------------------------------------------- 
+
+void free_doublev_dict(dict_dv* dict) {
+    if (!dict) {
+        return;  // Silent return on NULL - common pattern for free functions
+    }
+
+    // Free all nodes in each bucket
+    for (size_t i = 0; i < dict->alloc; i++) {
+        dvdictNode* current = dict->keyValues[i].next;
+        while (current) {      
+            dvdictNode* next = current->next;
+
+            free_double_vector(current->value);
+            free(current->key);
+            free(current);
+
+            current = next;
+        }
+    }
+
+    // Free the hash table and dictionary struct
+    free(dict->keyValues);
+    free(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void _free_doublev_dict(dict_dv** dict_ptr) {
+    if (dict_ptr && *dict_ptr) {
+        free_doublev_dict(*dict_ptr);
+        *dict_ptr = NULL;  // Prevent use-after-free
+    }
+}
+// -------------------------------------------------------------------------------- 
+
+bool has_key_doublev_dict(const dict_dv* dict, const char* key) {
+    if (!dict || !key) {
+        errno = EINVAL;
+        return false;
+    }
+
+    size_t index = hash_function(key, HASH_SEED) % dict->alloc;
+
+    for (const dvdictNode* current = dict->keyValues[index].next; current; current = current->next) {
+        if (strcmp(current->key, key) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+// -------------------------------------------------------------------------------- 
+
+bool insert_doublev_dict(dict_dv* dict, const char* key, double_v* value) {
+    if (!dict || !key || !value) {
+        errno = EINVAL;
+        return false;
+    }
+
+    // Only allow insertion of DYNAMIC vectors
+    if (value->alloc_type != DYNAMIC) {
+        errno = EPERM;  // Operation not permitted
+        return false;
+    }
+
+    // Resize if load factor exceeded
+    if (dict->hash_size >= dict->alloc * LOAD_FACTOR_THRESHOLD) {
+        size_t new_size = (dict->alloc < VEC_THRESHOLD)
+                          ? dict->alloc * 2
+                          : dict->alloc + VEC_FIXED_AMOUNT;
+
+        if (!resize_dictv(dict, new_size)) {
+            return false;
+        }
+    }
+
+    size_t index = hash_function(key, HASH_SEED) % dict->alloc;
+
+    // Check for existing key
+    for (dvdictNode* current = dict->keyValues[index].next; current; current = current->next) {
+        if (strcmp(current->key, key) == 0) {
+            errno = EEXIST;
+            return false;
+        }
+    }
+
+    // Allocate new key string
+    char* new_key = strdup(key);
+    if (!new_key) {
+        errno = ENOMEM;
+        return false;
+    }
+
+    // Allocate node
+    dvdictNode* new_node = malloc(sizeof(dvdictNode));
+    if (!new_node) {
+        free(new_key);
+        errno = ENOMEM;
+        return false;
+    }
+
+    new_node->key = new_key;
+    new_node->value = value;
+    new_node->next = dict->keyValues[index].next;
+    dict->keyValues[index].next = new_node;
+
+    dict->hash_size++;
+    if (new_node->next == NULL) {
+        dict->len++;
+    }
+
+    return true;
+}
+// -------------------------------------------------------------------------------- 
+
+size_t double_dictv_size(const dict_dv* dict) {
+    if (!dict) {
+        errno = EINVAL;
+        return SIZE_MAX;
+    }
+    return dict->len;
+}
+// --------------------------------------------------------------------------------
+
+size_t double_dictv_alloc(const dict_dv* dict) {
+    if (!dict) {
+        errno = EINVAL;
+        return SIZE_MAX;
+    }
+    return dict->alloc;
+}
+// -------------------------------------------------------------------------------- 
+
+size_t double_dictv_hash_size(const dict_dv* dict) {
+    if (!dict) {
+        errno = EINVAL;
+        return SIZE_MAX;
+    }
+    return dict->hash_size;
+}
+// -------------------------------------------------------------------------------- 
+
+dict_dv* copy_doublev_dict(const dict_dv* original) {
+    if (!original) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    dict_dv* copy = init_doublev_dict();
+    if (!copy) {
+        return NULL;  // errno already set
+    }
+
+    for (size_t i = 0; i < original->alloc; ++i) {
+        dvdictNode* current = original->keyValues[i].next;
+        while (current) {
+            // if (current->value->alloc_type != DYNAMIC) {
+            //     free_doublev_dict(copy);
+            //     errno = EPERM;
+            //     return NULL;
+            // }
+
+            double_v* vec_copy = copy_double_vector(current->value);
+            if (!vec_copy) {
+                free_doublev_dict(copy);
+                return NULL;
+            }
+
+            if (!insert_doublev_dict(copy, current->key, vec_copy)) {
+                free_double_vector(vec_copy);
+                free_doublev_dict(copy);
+                return NULL;
+            }
+
+            current = current->next;
+        }
+    }
+
+    return copy;
+}
+// -------------------------------------------------------------------------------- 
+
+dict_dv* merge_doublev_dict(const dict_dv* dict1, const dict_dv* dict2, bool overwrite) {
+    if (!dict1 || !dict2) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    // Start by deep copying dict1
+    dict_dv* merged = copy_doublev_dict(dict1);
+    if (!merged) {
+        return NULL;
+    }
+
+    // Now process dict2 entries
+    for (size_t i = 0; i < dict2->alloc; ++i) {
+        dvdictNode* current = dict2->keyValues[i].next;
+        while (current) {
+            if (!current->key || !current->value || current->value->alloc_type != DYNAMIC) {
+                free_doublev_dict(merged);
+                errno = EPERM;
+                return NULL;
+            }
+
+            bool exists = has_key_doublev_dict(merged, current->key);
+            if (exists && !overwrite) {
+                current = current->next;
+                continue;
+            }
+
+            double_v* vec_copy = copy_double_vector(current->value);
+            if (!vec_copy) {
+                free_doublev_dict(merged);
+                return NULL; // errno set by copy_double_vector
+            }
+
+            if (exists) {
+                pop_doublev_dict(merged, current->key);
+            }
+
+            if (!insert_doublev_dict(merged, current->key, vec_copy)) {
+                free_double_vector(vec_copy);
+                free_doublev_dict(merged);
+                return NULL;
+            }
+
+            current = current->next;
+        }
+    }
+
+    return merged;
+}
+// -------------------------------------------------------------------------------- 
+
+void clear_doublev_dict(dict_dv* dict) {
+    if (!dict) {
+        errno = EINVAL;
+        return;
+    }
+
+    for (size_t i = 0; i < dict->alloc; ++i) {
+        dvdictNode* current = dict->keyValues[i].next;
+        dict->keyValues[i].next = NULL;
+
+        while (current) {
+            dvdictNode* next = current->next;
+
+            if (current->value) {
+                if (current->value->alloc_type == STATIC) {
+                    free(current->value);
+                } else {
+                    free_double_vector(current->value);
+                }
+            }
+
+            free(current->key);
+            free(current);
+            current = next;
+        }
+    }
+
+    dict->hash_size = 0;
+    dict->len = 0;
+}
+// -------------------------------------------------------------------------------- 
+
+bool foreach_doublev_dict(const dict_dv* dict, dict_dv_iterator iter, void* user_data) {
+    if (!dict || !iter) {
+        errno = EINVAL;
+        return false;
+    }
+
+    for (size_t i = 0; i < dict->alloc; ++i) {
+        dvdictNode* current = dict->keyValues[i].next;
+        while (current) {
+            iter(current->key, current->value, user_data);
+            current = current->next;
+        }
+    }
+
+    return true;
+}
+// -------------------------------------------------------------------------------- 
+
+string_v* get_keys_doublev_dict(const dict_dv* dict) {
+    if (!dict) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    string_v* vec = init_str_vector(dict->hash_size);
+    if (!vec) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    for (size_t i = 0; i < dict->alloc; ++i) {
+        for (dvdictNode* current = dict->keyValues[i].next; current; current = current->next) {
+            if (!push_back_str_vector(vec, current->key)) {
+                free_str_vector(vec);
+                errno = ENOMEM;
+                return NULL;
+            }
+        }
+    }
+
+    return vec;
+}
 // ================================================================================
 // ================================================================================
 // eof

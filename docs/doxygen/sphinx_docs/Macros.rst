@@ -43,8 +43,8 @@ vectors and statically allocated arrays.  It automatically selects:
 
 This macro simplifies size queries by providing a consistent interface regardless of
 the underlying type. This Macro may be safely used in place of the 
-:ref:`double_vector_size() <double-size-func>`, :ref:`double_dict_size() <float-dict-size-func>` 
-and :ref:`double_dictv_size() <floatv-dict-size-func>` functions.
+:ref:`double_vector_size() <double-size-func>`, :ref:`double_dict_size() <double-dict-size-func>` 
+and :ref:`double_dictv_size() <doublev-dict-size-func>` functions.
 
 Example:
 

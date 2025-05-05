@@ -201,12 +201,12 @@ get_double_dict_value
 ~~~~~~~~~~~~~~~~~~~~~
 .. c:function:: double get_double_dict_value(const dict_d* dict, const char* key)
 
-   Retrieves the value associated with a key. Returns FLT_MAX if the key
+   Retrieves the value associated with a key. Returns DBL_MAX if the key
    is not found.
 
    :param dict: Target dictionary
    :param key: String key to look up
-   :returns: Associated double value, or FLT_MAX if not found
+   :returns: Associated double value, or DBL_MAX if not found
    :raises: Sets errno to EINVAL for NULL inputs, ENOENT if key not found
 
    Example:
@@ -235,12 +235,12 @@ pop_double_dict
 ~~~~~~~~~~~~~~~
 .. c:function:: double pop_double_dict(dict_d* dict, const char* key)
 
-   Removes and returns the value associated with a key. Returns FLT_MAX if
+   Removes and returns the value associated with a key. Returns DBL_MAX if
    the key is not found.
 
    :param dict: Target dictionary
    :param key: String key to remove
-   :returns: Value associated with key, or FLT_MAX if not found
+   :returns: Value associated with key, or DBL_MAX if not found
    :raises: Sets errno to EINVAL for NULL inputs, ENOENT if key not found
 
    Example:
@@ -252,7 +252,7 @@ pop_double_dict
       insert_double_dict(dict, "temperature", 101.7);
       double value = pop_double_dict(dict, "temperature");
       double value = get_double_dict_value(dict, "temperature);
-      if (value == FLT_MAX && errno = ENOENT) {
+      if (value == DBL_MAX && errno = ENOENT) {
           printf("Removed value associated with: 'temperature'");
       }
 
@@ -711,7 +711,7 @@ foreach_double_dict
          foreach_double_dict(dict, print_with_prefix, (void*)prefix);
          
          // Calculate statistics
-         stats_data stats = {0.0f, 0, FLT_MAX, -FLT_MAX};
+         stats_data stats = {0.0f, 0, DBL_MAX, -DBL_MAX};
          foreach_double_dict(dict, gather_stats, &stats);
          
          printf("\nStatistics:\n");
