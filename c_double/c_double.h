@@ -96,6 +96,15 @@ double_v* init_double_vector(size_t buffer);
 // --------------------------------------------------------------------------------
 
 /**
+ * @brief returns a c style pointer to the beginning of an array 
+ *
+ * @param vec A pointer to a double_v data type 
+ * @return A pointer to the beginning of a double array
+ */
+double* c_double_ptr(double_v* vec);
+// -------------------------------------------------------------------------------- 
+
+/**
 * @function push_back_double_vector
 * @brief Adds a double value to the end of the vector
 *

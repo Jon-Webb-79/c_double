@@ -57,6 +57,15 @@ double_v* init_double_vector(size_t buff) {
     struct_ptr->alloc_type = DYNAMIC;
     return struct_ptr;
 }
+// -------------------------------------------------------------------------------- 
+
+double* c_double_ptr(double_v* vec) {
+    if (!vec || !vec->data) {
+        errno = EINVAL;
+        return NULL;
+    }
+    return vec->data;
+}
 // --------------------------------------------------------------------------------
 
 void free_double_vector(double_v* vec) {

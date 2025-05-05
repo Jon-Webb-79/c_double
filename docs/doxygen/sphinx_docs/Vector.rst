@@ -1032,6 +1032,45 @@ length of double containers.
 
 .. _double-size-func:
 
+c_double_ptr 
+~~~~~~~~~~~~
+.. c:function:: const double* c_double_ptr(double_v* vec)
+
+   Returns a pointer to the beginning of the double precision array.  Generally 
+   speaking, it is frowned upon to directly access data within the vector; 
+   however, this supports integration with many legacy C libraries where the 
+   array is passed as a pointer and the bounds is controlled by a size variable.
+
+   :param vec: A pointer to a double_v data type 
+   :returns: A pointer to a s style raw array 
+   :raises: EINVAL for NULL input pointer or NULL data pointer.
+
+   Example:
+
+   .. code-block:: c 
+
+      void print_data(double* array, size_t len) {
+          printf("[ ");
+          for (size_t i = 0; i < len - 1; i++) {
+              printf("%lf, ", array[i]);
+          }
+          printf("%lf ]");
+      }
+
+      int main() {
+          double_v* vec = init_double_vector(3);
+          push_back_double_vector(vec, 1.0);
+          push_back_double_vector(vec, 2.0);
+          push_back_double_vector(vec, 3.0);
+          print_data(vec, double_vector_size(vec));
+          free_double_vector(vec);
+          return 0;
+      }
+
+   .. code-block:: bash 
+
+      [ 1.0000, 2.0000, 3.0000 ]
+
 double_vector_size
 ~~~~~~~~~~~~~~~~~~
 .. c:function:: const size_t double_vector_size(const double_v* vec)
