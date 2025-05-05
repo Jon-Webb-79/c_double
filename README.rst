@@ -259,4 +259,4 @@ Contribute to Code Base
 Documentation 
 =============
 This code in this repository is further documented at the 
-XXX website
+`Read the Docs <https://c-double.readthedocs.io/en/latest/>`_ XXX website
