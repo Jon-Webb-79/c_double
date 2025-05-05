@@ -237,12 +237,12 @@ bool insert_double_vector(double_v* vec, double value, size_t index) {
 double pop_back_double_vector(double_v* vec) {
     if (!vec || !vec->data) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
     
     if (vec->len == 0) {
         errno = ENODATA;
-        return FLT_MAX;
+        return DBL_MAX;
     }
     
     // Create copy of last element
@@ -257,18 +257,18 @@ double pop_back_double_vector(double_v* vec) {
 double pop_front_double_vector(double_v* vec) {  // Fixed function name
     if (!vec || !vec->data) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
    
     if (vec->len == 0) {
         errno = ENODATA;
-        return FLT_MAX;
+        return DBL_MAX;
     }
    
     // Check for overflow in memmove size calculation
     if (vec->len > SIZE_MAX / sizeof(double)) {
         errno = ERANGE;
-        return FLT_MAX;
+        return DBL_MAX;
     }
    
     // Create copy of first element
@@ -287,17 +287,17 @@ double pop_front_double_vector(double_v* vec) {  // Fixed function name
 double pop_any_double_vector(double_v* vec, size_t index) {
     if (!vec || !vec->data) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
    
     if (vec->len == 0) {
         errno = ENODATA;
-        return FLT_MAX;
+        return DBL_MAX;
     }
     
     if (index >= vec->len) {
         errno = ERANGE;
-        return FLT_MAX;
+        return DBL_MAX;
     }
     
     // Create copy of element to pop
@@ -308,7 +308,7 @@ double pop_any_double_vector(double_v* vec, size_t index) {
         // Check for overflow in memmove size calculation
         if ((vec->len - index - 1) > SIZE_MAX / sizeof(double)) {
             errno = ERANGE;
-            return FLT_MAX;
+            return DBL_MAX;
         }
         
         memmove(&vec->data[index], &vec->data[index + 1], 
@@ -326,11 +326,11 @@ double pop_any_double_vector(double_v* vec, size_t index) {
 const double double_vector_index(const double_v* vec, size_t index) {
     if (!vec || !vec->data) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
     if (index > vec->len - 1) {
         errno = ERANGE;
-        return FLT_MAX;
+        return DBL_MAX;
     }
     return vec->data[index];
 }
@@ -577,10 +577,10 @@ void update_double_vector(double_v* vec, size_t index, double replacement_value)
 double min_double_vector(double_v* vec) {
     if (!vec || !vec->data || vec->len == 0) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
-    double min_val = FLT_MAX;
+    double min_val = DBL_MAX;
 
 #if defined(__AVX__)
     __m256 vmin = _mm256_set1_ps(min_val);
@@ -633,10 +633,10 @@ double min_double_vector(double_v* vec) {
 double max_double_vector(double_v* vec) {
     if (!vec || !vec->data || vec->len == 0) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
-    double max_val = -FLT_MAX;
+    double max_val = -DBL_MAX;
 
 #if defined(__AVX__)
     __m256 vmax = _mm256_set1_ps(max_val);
@@ -689,7 +689,7 @@ double max_double_vector(double_v* vec) {
 double sum_double_vector(double_v* vec) {
     if (!vec || !vec->data || vec->len == 0) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
     const size_t len = vec->len;
@@ -753,11 +753,11 @@ double sum_double_vector(double_v* vec) {
 double average_double_vector(double_v* vec) {
     if (!vec || !vec->data || vec->len == 0) {
         errno = EINVAL;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
     double sum = sum_double_vector(vec);
-    if (errno != 0) return FLT_MAX;
+    if (errno != 0) return DBL_MAX;
     return sum / vec->len;
 }
 
@@ -766,21 +766,21 @@ double average_double_vector(double_v* vec) {
 double stdev_double_vector(double_v* vec) {
     if (!vec || !vec->data) {
         errno = ENODATA;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
     if (vec->len == 0) {
         errno = ENODATA;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
     if (vec->len == 1) {
         errno = ENODATA;
-        return FLT_MAX;
+        return DBL_MAX;
     }
 
     double mean = average_double_vector(vec);
-    if (errno != 0) return FLT_MAX;
+    if (errno != 0) return DBL_MAX;
 
     double sum_sq_diff = 0.0f;
 
