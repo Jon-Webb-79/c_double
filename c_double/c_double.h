@@ -406,44 +406,259 @@ double_v* cum_sum_double_vector(double_v* vec);
 double_v* copy_double_vector(const double_v* original);
 // ================================================================================ 
 // ================================================================================ 
+// DICTIONARY PROTOTYPES 
+
+/**
+ * @typedef dict_d
+ * @brief Opaque struct representing a dictionary.
+ *
+ * This structure encapsulates a hash table that maps string keys to double values.
+ * The details of the struct are hidden from the user and managed internally.
+ */
+typedef struct dict_d dict_d;
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Initializes a new dictionary.
+ *
+ * Allocates and initializes a dictionary object with a default size for the hash table.
+ *
+ * @return A pointer to the newly created dictionary, or NULL if allocation fails.
+ */
+dict_d* init_double_dict();
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Inserts a key-value pair into the dictionary.
+ *
+ * Adds a new key-value pair to the dictionary. If the key already exists, the function
+ * does nothing and returns false. If the dictionary's load factor exceeds a threshold,
+ * it automatically resizes.
+ *
+ * @param dict Pointer to the dictionary.
+ * @param key The key to insert.
+ * @param value The value associated with the key.
+ * @return true if the key-value pair was inserted successfully, false otherwise.
+ */
+bool insert_double_dict(dict_d* dict, const char* key, double value);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Removes a key-value pair from the dictionary.
+ *
+ * Finds the specified key in the dictionary, removes the associated key-value pair,
+ * and returns the value.
+ *
+ * @param dict Pointer to the dictionary.
+ * @param key The key to remove.
+ * @return The value associated with the key if it was found and removed; FLT_MAX otherwise.
+ */
+double pop_double_dict(dict_d* dict,  const char* key);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Retrieves the value associated with a key.
+ *
+ * Searches the dictionary for the specified key and returns the corresponding value.
+ *
+ * @param dict Pointer to the dictionary.
+ * @param key The key to search for.
+ * @return The value associated with the key, or FLT_MAX if the key is not found.
+ */
+double get_double_dict_value(const dict_d* dict, const char* key);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Frees the memory associated with the dictionary.
+ *
+ * Releases all memory allocated for the dictionary, including all key-value pairs.
+ *
+ * @param dict Pointer to the dictionary to free.
+ */
+void free_double_dict(dict_d* dict);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Safely frees a dictionary and sets the pointer to NULL.
+ *
+ * A wrapper around `free_dict` that ensures the dictionary pointer is also set to NULL
+ * after being freed. Useful for preventing dangling pointers.
+ *
+ * @param dict Pointer to the dictionary pointer to free.
+ */
+void _free_double_dict(dict_d** dict);
+// --------------------------------------------------------------------------------
+
+#if defined(__GNUC__) || defined (__clang__)
+    /**
+     * @macro DICT_GBC
+     * @brief A macro for enabling automatic cleanup of dict_d objects.
+     *
+     * This macro uses the cleanup attribute to automatically call `_free_vector`
+     * when the scope ends, ensuring proper memory management.
+     */
+    #define DDICT_GBC __attribute__((cleanup(_free_double_dict)))
+#endif
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Updates the value associated with a key in the dictionary.
+ *
+ * Searches for the specified key in the dictionary and updates its value.
+ * If the key does not exist, the function takes no action.
+ *
+ * @param dict Pointer to the dictionary.
+ * @param key The key to update.
+ * @param value The new value to associate with the key.
+ */
+bool update_double_dict(dict_d* dict, const char* key, double value);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Gets the number of non-empty buckets in the dictionary.
+ *
+ * Returns the total number of buckets in the hash table that contain at least one key-value pair.
+ *
+ * @param dict Pointer to the dictionary.
+ * @return The number of non-empty buckets.
+ */
+size_t double_dict_size(const dict_d* dict);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Gets the total capacity of the dictionary.
+ *
+ * Returns the total number of buckets currently allocated in the hash table.
+ *
+ * @param dict Pointer to the dictionary.
+ * @return The total number of buckets in the dictionary.
+ */
+size_t double_dict_alloc(const dict_d* dict);
+// --------------------------------------------------------------------------------
+
+/**
+ * @brief Gets the total number of key-value pairs in the dictionary.
+ *
+ * Returns the total number of key-value pairs currently stored in the dictionary.
+ *
+ * @param dict Pointer to the dictionary.
+ * @return The number of key-value pairs.
+ */
+size_t double_dict_hash_size(const dict_d* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Checks if a key exists in the dictionary without retrieving its value
+ * 
+ * @param dict Pointer to the dictionary
+ * @param key Key to check for
+ * @return bool true if key exists, false otherwise
+ */
+bool has_key_double_dict(const dict_d* dict, const char* key);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Creates a deep copy of a dictionary
+ * 
+ * @param dict Pointer to the dictionary to copy
+ * @return dict_d* New dictionary containing copies of all entries, NULL on error
+ */
+dict_d* copy_double_dict(const dict_d* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Removes all entries from a dictionary without freeing the dictionary itself
+ * 
+ * @param dict Pointer to the dictionary to clear
+ * @return bool true if successful, false otherwise
+ */
+bool clear_double_dict(dict_d* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Gets all keys in the dictionary
+ * 
+ * @param dict Pointer to the dictionary
+ * @return char** Array of strings containing copies of all keys, NULL on error
+ */
+string_v* get_keys_double_dict(const dict_d* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Gets all values in the dictionary
+ * 
+ * @param dict Pointer to the dictionary
+ * @return double* Array containing all values, NULL on error
+ */
+double_v* get_values_double_dict(const dict_d* dict);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Merges two dictionaries into a new dictionary
+ * 
+ * @param dict1 First dictionary
+ * @param dict2 Second dictionary
+ * @param overwrite If true, values from dict2 override dict1 on key conflicts
+ * @return dict_d* New dictionary containing merged entries, NULL on error
+ */
+dict_d* merge_double_dict(const dict_d* dict1, const dict_d* dict2, bool overwrite);
+// -------------------------------------------------------------------------------- 
+
+/**
+ * @brief Iterator function type for dictionary traversal
+ */
+typedef void (*dict_iterator)(const char* key, double value, void* user_data);
+
+/**
+ * @brief Iterates over all dictionary entries in insertion order
+ * 
+ * @param dict Pointer to the dictionary
+ * @param iter Iterator function to call for each entry
+ * @param user_data Optional user data passed to iterator function
+ */
+bool foreach_double_dict(const dict_d* dict, dict_iterator iter, void* user_data);
+// ================================================================================ 
+// ================================================================================ 
 // GENERIC MACROS
 
 /**
  * @macro f_size
- * @brief Generic macro to get the number of elements in a float container
+ * @brief Generic macro to get the number of elements in a double container
  *
  * This generic macro provides a unified interface for getting the current number
- * of elements in any float container type. It automatically selects the appropriate
+ * of elements in any double container type. It automatically selects the appropriate
  * size function based on the container type.
  * Currently supported container types:
- * - float_v (calls float_vector_size)
+ * - double_v (calls double_vector_size)
  * Additional container types will be added as the library expands.
  *
- * @param d_struct Pointer to float container structure
+ * @param d_struct Pointer to double container structure
  * @return Size (number of elements) in the container
  *         Returns LONG_MAX and sets errno to EINVAL for invalid input
  */
 #define d_size(d_struct) _Generic((d_struct), \
-    double_v*: double_vector_size) (d_struct)
+    double_v*: double_vector_size, \
+    dict_d*: double_dict_size) (d_struct)
 // --------------------------------------------------------------------------------
 
 /**
  * @macro f_alloc
- * @brief Generic macro to get the allocation size of a float container
+ * @brief Generic macro to get the allocation size of a double container
  *
  * This generic macro provides a unified interface for getting the current allocation
- * size in any float container type. It automatically selects the appropriate
+ * size in any double container type. It automatically selects the appropriate
  * allocation function based on the container type.
  * Currently supported container types:
- * - float_v (calls float_vector_alloc)
+ * - double_v (calls double_vector_alloc)
  * Additional container types will be added as the library expands.
  *
- * @param f_struct Pointer to float container structure
+ * @param f_struct Pointer to double container structure
  * @return Allocation size (capacity) of the container
  *         Returns LONG_MAX and sets errno to EINVAL for invalid input
  */
 #define d_alloc(d_struct) _Generic((d_struct), \
-    double_v*: double_vector_alloc) (d_struct)
+    double_v*: double_vector_alloc, \
+    dict_d*: double_dict_alloc) (d_struct)
 // ================================================================================ 
 // ================================================================================ 
 #ifdef __cplusplus

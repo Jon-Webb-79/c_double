@@ -110,16 +110,58 @@ const struct CMUnitTest test_vector[] = {
     cmocka_unit_test(test_stdev_cum_sum_special_values),
     cmocka_unit_test(test_stdev_cum_sum_errors)
 };
+// -------------------------------------------------------------------------------- 
+
+const struct CMUnitTest test_dict[] = {
+    cmocka_unit_test(test_dictionary_gbc),
+    cmocka_unit_test_setup_teardown(test_insert_double_dict_basic, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_insert_double_dict_duplicate, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_insert_double_dict_null, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_get_double_dict_value_basic, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_get_double_dict_value_missing, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_update_double_dict_basic, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_update_double_dict_missing, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_pop_double_dict_basic, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_pop_double_dict_missing, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_resize_behavior, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_get_keys_double_dict, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_get_values_double_dict, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_foreach_double_dict_basic, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_foreach_double_dict_empty, setup, teardown),
+    cmocka_unit_test_setup_teardown(test_foreach_double_dict_null, setup, teardown),
+    // cmocka_unit_test(test_vector_dictionary),
+    // cmocka_unit_test(test_vector_dictionary_resize),
+    // cmocka_unit_test(test_vector_dictionary_gbc),
+    // cmocka_unit_test(test_pop_vector_dictionary),
+    // cmocka_unit_test(test_insert_floatv_dict_basic),
+    // cmocka_unit_test(test_floatv_size_macros),
+    // cmocka_unit_test(test_copy_floatv_dict_success),
+    // cmocka_unit_test(test_copy_floatv_dict_null_input),
+    // cmocka_unit_test(test_copy_floatv_dict_static_vector),
+    // cmocka_unit_test(test_copy_floatv_dict_multiple_entries),
+    // cmocka_unit_test(test_copy_floatv_dict_independence),
+    // cmocka_unit_test(test_merge_floatv_dict_unique_keys),
+    // cmocka_unit_test(test_merge_floatv_dict_no_overwrite),
+    // cmocka_unit_test(test_merge_floatv_dict_overwrite),
+    // cmocka_unit_test(test_merge_floatv_dict_reject_static),
+    // cmocka_unit_test(test_merge_floatv_dict_null_inputs),
+    // cmocka_unit_test(test_clear_floatv_dict_basic),
+    // cmocka_unit_test(test_clear_floatv_dict_empty),
+    // cmocka_unit_test(test_clear_floatv_dict_reuse_after_clear),
+    // cmocka_unit_test(test_foreach_floatv_dict_counts_keys),
+    // cmocka_unit_test(test_foreach_floatv_dict_with_null_dict),
+    // cmocka_unit_test(test_foreach_floatv_dict_with_null_callback),
+    // cmocka_unit_test(test_foreach_floatv_dict_accumulates_sum),
+};
 // ================================================================================ 
 // ================================================================================ 
 // Begin code
 int main(int argc, const char * argv[]) {
     int status;
     status = cmocka_run_group_tests(test_vector, NULL, NULL);
-    return status;
-    // if (status != 0) 
-    //     return status;	
-    // return cmocka_run_group_tests(test_dict, NULL, NULL);
+    if (status != 0) 
+        return status;	
+    return cmocka_run_group_tests(test_dict, NULL, NULL);
 }
 // ================================================================================ 
 // ================================================================================ 

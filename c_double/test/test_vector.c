@@ -1909,6 +1909,226 @@ void test_stdev_cum_sum_errors(void **state) {
      
     free_double_vector(vec);
 }
+// ================================================================================ 
+// ================================================================================ 
+
+/* Setup and teardown functions */
+static dict_d* test_dict = NULL;
+
+int setup(void** state) {
+    test_dict = init_double_dict();
+    if (!test_dict) return -1;
+    *state = test_dict;
+    return 0;
+}
+// -------------------------------------------------------------------------------- 
+
+int teardown(void** state) {
+    free_double_dict(test_dict);
+    return 0;
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test initialization */
+void test_init_double_dict(void** state) {
+    dict_d* dict = init_double_dict();
+    assert_non_null(dict);
+    assert_int_equal(double_dict_hash_size(dict), 0);
+    assert_int_equal(double_dict_size(dict), 0);
+    assert_true(double_dict_alloc(dict) > 0);
+    free_double_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test insertion */
+void test_insert_double_dict_basic(void** state) {
+    dict_d* dict = *state;
+    
+    assert_true(insert_double_dict(dict, "test", 1.0f));
+    assert_int_equal(double_dict_hash_size(dict), 1);
+    assert_int_equal(double_dict_size(dict), 1);
+    
+    double value = get_double_dict_value(dict, "test");
+    assert_float_equal(value, 1.0f, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_insert_double_dict_duplicate(void** state) {
+    dict_d* dict = *state;
+    
+    assert_true(insert_double_dict(dict, "test", 1.0f));
+    assert_false(insert_double_dict(dict, "test", 2.0f));
+    
+    double value = get_double_dict_value(dict, "test");
+    assert_float_equal(value, 1.0f, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_insert_double_dict_null(void** state) {
+    dict_d* dict = *state;
+    
+    assert_false(insert_double_dict(NULL, "test", 1.0f));
+    assert_false(insert_double_dict(dict, NULL, 1.0f));
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test retrieval */
+void test_get_double_dict_value_basic(void** state) {
+    dict_d* dict = *state;
+    
+    insert_double_dict(dict, "key1", 1.5f);
+    double value = get_double_dict_value(dict, "key1");
+    assert_float_equal(value, 1.5f, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_get_double_dict_value_missing(void** state) {
+    dict_d* dict = *state;
+    
+    double value = get_double_dict_value(dict, "nonexistent");
+    assert_float_equal(value, FLT_MAX, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test update */
+void test_update_double_dict_basic(void** state) {
+    dict_d* dict = *state;
+    
+    insert_double_dict(dict, "key1", 1.0f);
+    assert_true(update_double_dict(dict, "key1", 2.0f));
+    
+    double value = get_double_dict_value(dict, "key1");
+    assert_float_equal(value, 2.0f, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_update_double_dict_missing(void** state) {
+    dict_d* dict = *state;
+    
+    assert_false(update_double_dict(dict, "nonexistent", 1.0f));
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test removal */
+void test_pop_double_dict_basic(void** state) {
+    dict_d* dict = *state;
+    
+    insert_double_dict(dict, "key1", 1.5f);
+    double value = pop_double_dict(dict, "key1");
+    assert_float_equal(value, 1.5f, 0.0001f);
+    assert_int_equal(double_dict_hash_size(dict), 0);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_pop_double_dict_missing(void** state) {
+    dict_d* dict = *state;
+    
+    double value = pop_double_dict(dict, "nonexistent");
+    assert_float_equal(value, FLT_MAX, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test resize behavior */
+void test_resize_behavior(void** state) {
+    dict_d* dict = *state;
+    char key[20];
+    size_t initial_alloc = double_dict_alloc(dict);
+    
+    // Insert enough items to trigger resize
+    for (int i = 0; i < 100; i++) {
+        sprintf(key, "key%d", i);
+        assert_true(insert_double_dict(dict, key, (double)i));
+    }
+    
+    assert_true(double_dict_alloc(dict) > initial_alloc);
+}
+// -------------------------------------------------------------------------------- 
+
+/* Test key/value extraction */
+void test_get_keys_double_dict(void** state) {
+    dict_d* dict = *state;
+    
+    insert_double_dict(dict, "key1", 1.0f);
+    insert_double_dict(dict, "key2", 2.0f);
+    
+    string_v* keys = get_keys_double_dict(dict);
+    assert_non_null(keys);
+    assert_int_equal(double_dict_hash_size(dict), 2);
+    
+    free_str_vector(keys);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_get_values_double_dict(void** state) {
+    dict_d* dict = *state;
+    
+    insert_double_dict(dict, "key1", 1.0f);
+    insert_double_dict(dict, "key2", 2.0f);
+    
+    double_v* values = get_values_double_dict(dict);
+    assert_non_null(values);
+    assert_int_equal(double_dict_hash_size(dict), 2);
+    
+    free_double_vector(values);
+}
+// -------------------------------------------------------------------------------- 
+
+/* Helper function for testing iterator */
+static void count_entries(const char* key, double value, void* user_data) {
+    size_t* count = (size_t*)user_data;
+    (*count)++;
+}
+
+/* Helper function to sum values */
+static void sum_values(const char* key, double value, void* user_data) {
+    double* sum = (double*)user_data;
+    *sum += value;
+}
+// -------------------------------------------------------------------------------- 
+
+void test_foreach_double_dict_basic(void** state) {
+    dict_d* dict = *state;
+    size_t count = 0;
+    
+    // Add some test data
+    assert_true(insert_double_dict(dict, "key1", 1.0f));
+    assert_true(insert_double_dict(dict, "key2", 2.0f));
+    assert_true(insert_double_dict(dict, "key3", 3.0f));
+    
+    // Test iteration count
+    assert_true(foreach_double_dict(dict, count_entries, &count));
+    assert_int_equal(count, 3);
+    assert_int_equal(count, double_dict_hash_size(dict));
+    
+    // Test value sum
+    double sum = 0.0f;
+    assert_true(foreach_double_dict(dict, sum_values, &sum));
+    assert_float_equal(sum, 6.0f, 0.0001f);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_foreach_double_dict_empty(void** state) {
+    dict_d* dict = *state;
+    size_t count = 0;
+    
+    assert_true(foreach_double_dict(dict, count_entries, &count));
+    assert_int_equal(count, 0);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_foreach_double_dict_null(void** state) {
+    dict_d* dict = *state;
+    size_t count = 0;
+    
+    assert_false(foreach_double_dict(NULL, count_entries, &count));
+    assert_false(foreach_double_dict(dict, NULL, &count));
+}
+// -------------------------------------------------------------------------------- 
+
+void test_dictionary_gbc(void **state) {
+    dict_d* dict DDICT_GBC = init_double_dict();
+    insert_double_dict(dict, "Key1", 1.0);
+}
 // ================================================================================
 // ================================================================================
 // eof
