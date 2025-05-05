@@ -834,7 +834,8 @@ string_v* get_keys_doublev_dict(const dict_dv* dict);
  */
 #define d_size(d_struct) _Generic((d_struct), \
     double_v*: double_vector_size, \
-    dict_d*: double_dict_size) (d_struct)
+    dict_d*: double_dict_size, \
+    dict_dv*: double_dictv_size) (d_struct)
 // --------------------------------------------------------------------------------
 
 /**
@@ -854,7 +855,8 @@ string_v* get_keys_doublev_dict(const dict_dv* dict);
  */
 #define d_alloc(d_struct) _Generic((d_struct), \
     double_v*: double_vector_alloc, \
-    dict_d*: double_dict_alloc) (d_struct)
+    dict_d*: double_dict_alloc, \
+    dict_dv*: double_dictv_alloc) (d_struct)
 // ================================================================================ 
 // ================================================================================ 
 #ifdef __cplusplus

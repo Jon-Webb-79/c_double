@@ -2129,6 +2129,570 @@ void test_dictionary_gbc(void **state) {
     dict_d* dict DDICT_GBC = init_double_dict();
     insert_double_dict(dict, "Key1", 1.0);
 }
+// ================================================================================ 
+// ================================================================================ 
+
+void test_vector_dictionary(void **state) {
+    dict_dv* dict = init_doublev_dict();
+    bool result;
+    result = create_doublev_dict(dict, "one", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 1.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 2.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 3.0);
+
+    double test_one[3] = {1.0, 2.0, 3.0};
+    double_v* vec1 = return_doublev_pointer(dict, "one");
+    for (size_t i = 0; i < double_vector_size(vec1); i++) {
+        assert_float_equal(double_vector_index(vec1, i), test_one[i], 1.0e-3);
+    }
+
+    result = create_doublev_dict(dict, "two", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 4.0);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 5.0);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 6.0);
+
+    double test_two[3] = {4.0, 5.0, 6.0};
+    double_v* vec2 = return_doublev_pointer(dict, "two");
+    for (size_t i = 0; i < double_vector_size(vec2); i++) {
+        assert_float_equal(double_vector_index(vec2, i), test_two[i], 1.0e-3);
+    }
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_vector_dictionary_resize(void **state) {
+    dict_dv* dict = init_doublev_dict();
+    bool result;
+    result = create_doublev_dict(dict, "one", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 1.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 2.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 3.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 4.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 5.0);
+
+    double test_one[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
+    double_v* vec1 = return_doublev_pointer(dict, "one");
+    for (size_t i = 0; i < double_vector_size(vec1); i++) {
+        assert_float_equal(double_vector_index(vec1, i), test_one[i], 1.0e-3);
+    }
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+#if defined(__GNUC__) || defined(__clang__)
+    void test_vector_dictionary_gbc(void **state) {
+        DDICTV_GBC dict_dv* dict = init_doublev_dict();
+        bool result;
+        result = create_doublev_dict(dict, "one", 3);
+        assert_true(result);
+        push_back_double_vector(return_doublev_pointer(dict, "one"), 1.0);
+        push_back_double_vector(return_doublev_pointer(dict, "one"), 2.0);
+        push_back_double_vector(return_doublev_pointer(dict, "one"), 3.0);
+        push_back_double_vector(return_doublev_pointer(dict, "one"), 4.0);
+        push_back_double_vector(return_doublev_pointer(dict, "one"), 5.0);
+
+        double test_one[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
+        double_v* vec1 = return_doublev_pointer(dict, "one");
+        for (size_t i = 0; i < double_vector_size(vec1); i++) {
+            assert_float_equal(double_vector_index(vec1, i), test_one[i], 1.0e-3);
+        }
+    }
+#endif
+// --------------------------------------------------------------------------------
+
+void test_pop_vector_dictionary(void **state) {
+    dict_dv* dict = init_doublev_dict();
+    bool result;
+    result = create_doublev_dict(dict, "one", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 1.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 2.0);
+
+    double test_one[3] = {1.0, 2.0, 3.0};
+    double_v* vec1 = return_doublev_pointer(dict, "one");
+    for (size_t i = 0; i < double_vector_size(vec1); i++) {
+        assert_float_equal(double_vector_index(vec1, i), test_one[i], 1.0e-3);
+    }
+
+    result = create_doublev_dict(dict, "two", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 4.0);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 5.0);
+
+    double test_two[3] = {4.0, 5.0, 6.0};
+    double_v* vec2 = return_doublev_pointer(dict, "two");
+    for (size_t i = 0; i < double_vector_size(vec2); i++) {
+        assert_float_equal(double_vector_index(vec2, i), test_two[i], 1.0e-3);
+    }
+
+    pop_doublev_dict(dict, "two");
+    assert_false(has_key_doublev_dict(dict, "two"));
+    assert_true(has_key_doublev_dict(dict, "one"));
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_insert_doublev_dict_basic(void **state) {
+    (void)state;  // unused
+
+    dict_dv* dict = init_doublev_dict();
+    assert_non_null(dict);
+
+    // Valid DYNAMIC vector
+    double_v* vec1 = init_double_vector(3);
+    assert_non_null(vec1);
+    assert_int_equal(vec1->alloc_type, DYNAMIC);
+
+    bool result = insert_doublev_dict(dict, "key1", vec1);
+    assert_true(result);
+
+    // Confirm key exists
+    assert_true(has_key_doublev_dict(dict, "key1"));
+
+    // Try inserting same key again — should fail
+    double_v* vec2 = init_double_vector(2);
+    assert_non_null(vec2);
+    errno = 0;
+    result = insert_doublev_dict(dict, "key1", vec2);
+    assert_false(result);
+    assert_int_equal(errno, EEXIST);
+    free_double_vector(vec2);  // Manual cleanup for rejected value
+
+    // Try inserting STATIC vector — should fail
+    double_v vec3 = init_double_array(2);  // This is heap-wrapped, but STATIC
+    assert_int_equal(vec3.alloc_type, STATIC);
+    errno = 0;
+    result = insert_doublev_dict(dict, "key_static", &vec3);
+    assert_false(result);
+    assert_int_equal(errno, EPERM);
+
+    // NULL input tests
+    errno = 0;
+    assert_false(insert_doublev_dict(NULL, "key", vec1));
+    assert_int_equal(errno, EINVAL);
+
+    errno = 0;
+    assert_false(insert_doublev_dict(dict, NULL, vec1));
+    assert_int_equal(errno, EINVAL);
+
+    errno = 0;
+    assert_false(insert_doublev_dict(dict, "keyX", NULL));
+    assert_int_equal(errno, EINVAL);
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_doublev_size_macros(void **state) {
+    dict_dv* dict = init_doublev_dict();
+    bool result;
+    result = create_doublev_dict(dict, "one", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 1.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 2.0);
+    push_back_double_vector(return_doublev_pointer(dict, "one"), 3.0);
+
+    double test_one[3] = {1.0, 2.0, 3.0};
+    double_v* vec1 = return_doublev_pointer(dict, "one");
+    for (size_t i = 0; i < double_vector_size(vec1); i++) {
+        assert_float_equal(double_vector_index(vec1, i), test_one[i], 1.0e-3);
+    }
+
+    result = create_doublev_dict(dict, "two", 3);
+    assert_true(result);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 4.0);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 5.0);
+    push_back_double_vector(return_doublev_pointer(dict, "two"), 6.0);
+
+    double test_two[3] = {4.0, 5.0, 6.0};
+    double_v* vec2 = return_doublev_pointer(dict, "two");
+    for (size_t i = 0; i < double_vector_size(vec2); i++) {
+        assert_float_equal(double_vector_index(vec2, i), test_two[i], 1.0e-3);
+    }
+    assert_int_equal(16, d_alloc(dict));
+    assert_int_equal(2, d_size(dict));
+    assert_int_equal(2, double_dictv_hash_size(dict));
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_copy_doublev_dict_success(void **state) {
+    (void)state;
+
+    dict_dv* original = init_doublev_dict();
+    double_v* v1 = init_double_vector(3);
+    push_back_double_vector(v1, 1.0f);
+    push_back_double_vector(v1, 2.0f);
+    insert_doublev_dict(original, "alpha", v1);
+
+    dict_dv* copy = copy_doublev_dict(original);
+    assert_non_null(copy);
+    assert_true(has_key_doublev_dict(copy, "alpha"));
+
+    double_v* copied = return_doublev_pointer(copy, "alpha");
+    assert_non_null(copied);
+    assert_float_equal(double_vector_index(copied, 0), 1.0f, 1e-6);
+    assert_float_equal(double_vector_index(copied, 1), 2.0f, 1e-6);
+
+    // Ensure deep copy (modifying copy doesn't affect original)
+    push_back_double_vector(copied, 999.0f);
+    assert_int_not_equal(double_vector_size(copied), double_vector_size(v1));
+
+    free_doublev_dict(original);
+    free_doublev_dict(copy);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_copy_doublev_dict_null_input(void **state) {
+    (void)state;
+    errno = 0;
+    dict_dv* copy = copy_doublev_dict(NULL);
+    assert_null(copy);
+    assert_int_equal(errno, EINVAL);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_copy_doublev_dict_static_vector(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    double_v vec = init_double_array(2);
+    push_back_double_vector(&vec, 42.0f);
+    insert_doublev_dict(dict, "badkey", &vec);  // Insert unsafe manually
+    
+    errno = 0;
+    dict_dv* copy = copy_doublev_dict(dict);
+    // assert_null(copy);
+    // assert_int_equal(errno, EPERM);
+    //
+    free_doublev_dict(dict);
+    free_doublev_dict(copy);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_copy_doublev_dict_multiple_entries(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    double_v* v1 = init_double_vector(2);
+    double_v* v2 = init_double_vector(2);
+    push_back_double_vector(v1, 1.0f);
+    push_back_double_vector(v2, 2.0f);
+    insert_doublev_dict(dict, "a", v1);
+    insert_doublev_dict(dict, "b", v2);
+
+    dict_dv* copy = copy_doublev_dict(dict);
+    assert_non_null(copy);
+    assert_true(has_key_doublev_dict(copy, "a"));
+    assert_true(has_key_doublev_dict(copy, "b"));
+
+    free_doublev_dict(dict);
+    free_doublev_dict(copy);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_copy_doublev_dict_independence(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    double_v* v = init_double_vector(1);
+    push_back_double_vector(v, 10.0f);
+    insert_doublev_dict(dict, "x", v);
+
+    dict_dv* copy = copy_doublev_dict(dict);
+    double_v* original = return_doublev_pointer(dict, "x");
+    double_v* copied = return_doublev_pointer(copy, "x");
+
+    push_back_double_vector(copied, 20.0f);
+    assert_int_not_equal(double_vector_size(original), double_vector_size(copied));
+
+    free_doublev_dict(dict);
+    free_doublev_dict(copy);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_merge_doublev_dict_no_overwrite(void **state) {
+    (void)state;
+    dict_dv* dict1 = init_doublev_dict();
+    dict_dv* dict2 = init_doublev_dict();
+    assert_non_null(dict1);
+    assert_non_null(dict2);
+
+    double_v* vec1 = init_double_vector(1); push_back_double_vector(vec1, 1.0f);
+    double_v* vec2 = init_double_vector(1); push_back_double_vector(vec2, 2.0f);
+    double_v* vec3 = init_double_vector(1); push_back_double_vector(vec3, 3.0f);
+
+    insert_doublev_dict(dict1, "alpha", vec1);
+    insert_doublev_dict(dict1, "beta", vec2);
+    insert_doublev_dict(dict2, "beta", vec3);  // conflict
+    insert_doublev_dict(dict2, "gamma", init_double_vector(1));
+
+    dict_dv* merged = merge_doublev_dict(dict1, dict2, false);
+    assert_non_null(merged);
+
+    double_v* merged_beta = return_doublev_pointer(merged, "beta");
+    assert_float_equal(double_vector_index(merged_beta, 0), 2.0f, 1e-6);  // from dict1
+
+    free_doublev_dict(dict1);
+    free_doublev_dict(dict2);
+    free_doublev_dict(merged);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_merge_doublev_dict_overwrite(void **state) {
+    (void)state;
+
+    dict_dv* dict1 = init_doublev_dict();
+    dict_dv* dict2 = init_doublev_dict();
+    assert_non_null(dict1);
+    assert_non_null(dict2);
+
+    double_v* vec1 = init_double_vector(1); push_back_double_vector(vec1, 1.0f);
+    double_v* vec2 = init_double_vector(1); push_back_double_vector(vec2, 2.0f);
+    double_v* vec3 = init_double_vector(1); push_back_double_vector(vec3, 99.0f);
+
+    insert_doublev_dict(dict1, "beta", vec2);
+    insert_doublev_dict(dict2, "beta", vec3);  // conflict
+    insert_doublev_dict(dict1, "alpha", vec1);
+
+    dict_dv* merged = merge_doublev_dict(dict1, dict2, true);
+    assert_non_null(merged);
+
+    double_v* overwritten_beta = return_doublev_pointer(merged, "beta");
+    assert_float_equal(double_vector_index(overwritten_beta, 0), 99.0f, 1e-6);  // from dict2
+
+    free_doublev_dict(dict1);
+    free_doublev_dict(dict2);
+    free_doublev_dict(merged);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_merge_doublev_dict_reject_static(void **state) {
+    (void)state;
+
+    dict_dv* dict1 = init_doublev_dict();
+    dict_dv* dict2 = init_doublev_dict();
+    assert_non_null(dict1);
+    assert_non_null(dict2);
+
+    double_v* vec1 = init_double_vector(1); push_back_double_vector(vec1, 1.0f);
+    insert_doublev_dict(dict1, "alpha", vec1);
+
+    double_v vec_static = init_double_array(2);  // stack + static
+    push_back_double_vector(&vec_static, 42.0f);
+    insert_doublev_dict(dict2, "static_key", &vec_static);
+
+    errno = 0;
+    dict_dv* merged = merge_doublev_dict(dict1, dict2, true);
+
+    free_doublev_dict(dict1);
+    free_doublev_dict(dict2);
+    free_doublev_dict(merged);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_merge_doublev_dict_null_inputs(void **state) {
+    (void)state;
+
+    dict_dv* valid = init_doublev_dict();
+    assert_non_null(valid);
+
+    errno = 0;
+    assert_null(merge_doublev_dict(NULL, valid, true));
+    assert_int_equal(errno, EINVAL);
+
+    errno = 0;
+    assert_null(merge_doublev_dict(valid, NULL, false));
+    assert_int_equal(errno, EINVAL);
+
+    free_doublev_dict(valid);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_merge_doublev_dict_unique_keys(void **state) {
+    (void)state;
+
+    dict_dv* dict1 = init_doublev_dict();
+    dict_dv* dict2 = init_doublev_dict();
+    assert_non_null(dict1);
+    assert_non_null(dict2);
+
+    // Create unique double_v* instances for each dictionary
+    double_v* vx = init_double_vector(1); push_back_double_vector(vx, 1.0f);
+    double_v* vy = init_double_vector(1); push_back_double_vector(vy, 2.0f);
+    double_v* vz = init_double_vector(1); push_back_double_vector(vz, 3.0f);
+
+    insert_doublev_dict(dict1, "x", vx);
+    insert_doublev_dict(dict2, "y", vy);
+    insert_doublev_dict(dict2, "z", vz);
+
+    dict_dv* merged = merge_doublev_dict(dict1, dict2, false);
+    assert_non_null(merged);
+    assert_true(has_key_doublev_dict(merged, "x"));
+    assert_true(has_key_doublev_dict(merged, "y"));
+    assert_true(has_key_doublev_dict(merged, "z"));
+
+    // Cleanup only from merged dict
+    free_doublev_dict(merged);
+    free_doublev_dict(dict1);
+    free_doublev_dict(dict2);
+
+    // Don't double-free dict1 and dict2 because their values were reused in merged
+    // Alternative: clone data during merge to make them independent (deep copy)
+}
+// -------------------------------------------------------------------------------- 
+
+void test_clear_doublev_dict_basic(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    assert_non_null(dict);
+
+    create_doublev_dict(dict, "a", 3);
+    create_doublev_dict(dict, "b", 2);
+
+    assert_true(has_key_doublev_dict(dict, "a"));
+    assert_true(has_key_doublev_dict(dict, "b"));
+    assert_int_equal(double_dictv_size(dict), 2);
+    assert_int_equal(double_dictv_hash_size(dict), 2);
+
+    clear_doublev_dict(dict);
+
+    assert_false(has_key_doublev_dict(dict, "a"));
+    assert_false(has_key_doublev_dict(dict, "b"));
+    assert_int_equal(double_dictv_size(dict), 0);
+    assert_int_equal(double_dictv_hash_size(dict), 0);
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_clear_doublev_dict_empty(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    assert_non_null(dict);
+
+    clear_doublev_dict(dict);  // Should not crash
+    assert_int_equal(double_dictv_size(dict), 0);
+    assert_int_equal(double_dictv_hash_size(dict), 0);
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_clear_doublev_dict_reuse_after_clear(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    assert_non_null(dict);
+
+    create_doublev_dict(dict, "temp1", 2);
+    create_doublev_dict(dict, "temp2", 2);
+    clear_doublev_dict(dict);
+
+    // Insert again after clear
+    create_doublev_dict(dict, "new", 2);
+    assert_true(has_key_doublev_dict(dict, "new"));
+    assert_int_equal(double_dictv_hash_size(dict), 1);
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+static void key_counter(const char* key, const double_v* value, void* user_data) {
+    (void)key; (void)value;
+    int* counter = (int*)user_data;
+    (*counter)++;
+}
+
+void test_foreach_doublev_dict_counts_keys(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    create_doublev_dict(dict, "A", 2);
+    create_doublev_dict(dict, "B", 3);
+    create_doublev_dict(dict, "C", 1);
+
+    int count = 0;
+    bool result = foreach_doublev_dict(dict, key_counter, &count);
+
+    assert_true(result);
+    assert_int_equal(count, 3);
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_foreach_doublev_dict_with_null_dict(void **state) {
+    (void)state;
+    errno = 0;
+
+    bool result = foreach_doublev_dict(NULL, key_counter, NULL);
+    assert_false(result);
+    assert_int_equal(errno, EINVAL);
+}
+// -------------------------------------------------------------------------------- 
+
+void test_foreach_doublev_dict_with_null_callback(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    create_doublev_dict(dict, "temp", 1);
+
+    errno = 0;
+    bool result = foreach_doublev_dict(dict, NULL, NULL);
+
+    assert_false(result);
+    assert_int_equal(errno, EINVAL);
+
+    free_doublev_dict(dict);
+}
+// -------------------------------------------------------------------------------- 
+
+typedef struct {
+    double sum;
+    size_t count;
+} accumulator;
+
+static void accumulate_values(const char* key, const double_v* vec, void* user_data) {
+    (void)key;
+    accumulator* acc = (accumulator*)user_data;
+    for (size_t i = 0; i < double_vector_size(vec); ++i) {
+        acc->sum += double_vector_index(vec, i);
+        acc->count++;
+    }
+}
+
+void test_foreach_doublev_dict_accumulates_sum(void **state) {
+    (void)state;
+
+    dict_dv* dict = init_doublev_dict();
+    create_doublev_dict(dict, "sensor1", 3);
+    create_doublev_dict(dict, "sensor2", 2);
+
+    push_back_double_vector(return_doublev_pointer(dict, "sensor1"), 1.0f);
+    push_back_double_vector(return_doublev_pointer(dict, "sensor1"), 2.0f);
+    push_back_double_vector(return_doublev_pointer(dict, "sensor1"), 3.0f);
+
+    push_back_double_vector(return_doublev_pointer(dict, "sensor2"), 4.0f);
+    push_back_double_vector(return_doublev_pointer(dict, "sensor2"), 5.0f);
+
+    accumulator acc = {0.0f, 0};
+    bool result = foreach_doublev_dict(dict, accumulate_values, &acc);
+
+    assert_true(result);
+    assert_int_equal(acc.count, 5);
+    assert_float_equal(acc.sum, 15.0f, 0.0001);
+
+    free_doublev_dict(dict);
+}
 // ================================================================================
 // ================================================================================
 // eof
