@@ -1034,7 +1034,7 @@ length of double containers.
 
 c_double_ptr 
 ~~~~~~~~~~~~
-.. c:function:: const double* c_double_ptr(double_v* vec)
+.. c:function:: double* c_double_ptr(double_v* vec)
 
    Returns a pointer to the beginning of the double precision array.  Generally 
    speaking, it is frowned upon to directly access data within the vector; 
