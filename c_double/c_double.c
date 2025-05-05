@@ -1,25 +1,24 @@
 // ================================================================================
 // ================================================================================
-// - File:    filename.c
+// - File:    c_double.c
 // - Purpose: Describe the file purpose here
 //
 // Source Metadata
 // - Author:  Jonathan A. Webb
 // - Date:    May 04, 2025
 // - Version: 1.0
-// - Copyright: Copyright 2022, Jon Webb Inc.
+// - Copyright: Copyright 2025, Jon Webb Inc.
 // ================================================================================
 // ================================================================================
 // Include modules here
 
-#include <stdio.h>
+#include "c_double.h"
 
 // Begin code
-int main(int argc, const char * argv[]) {
-	printf("Hello, World\n");
+int func() {
+	// Replace this function with the correct one
 	return 0;
 }
 // ================================================================================
 // ================================================================================
 // eof
-
