@@ -66,14 +66,14 @@ goto :eof
 
 :: Install c_float files
 echo Processing c_double library files...
-call :install_file "..\..\c_float\c_float.h" "%FLOAT_INCLUDE_DIR%\c_double.h" "float header" "c_float.h"
-call :install_file "..\..\c_float\c_float.c" "%FLOAT_LIB_DIR%\c_double.c" "float source" "c_float.c"
+call :install_file "..\..\c_double\c_float.h" "%FLOAT_INCLUDE_DIR%\c_double.h" "float header" "c_float.h"
+call :install_file "..\..\c_double\c_float.c" "%FLOAT_LIB_DIR%\c_double.c" "float source" "c_float.c"
 
 :: Install c_string files
 echo.
 echo Processing c_string library files...
-call :install_file "..\..\c_float\c_string.h" "%STRING_INCLUDE_DIR%\c_string.h" "string header" "c_string.h"
-call :install_file "..\..\c_float\c_string.c" "%STRING_LIB_DIR%\c_string.c" "string source" "c_string.c"
+call :install_file "..\..\c_double\c_string.h" "%STRING_INCLUDE_DIR%\c_string.h" "string header" "c_string.h"
+call :install_file "..\..\c_double\c_string.c" "%STRING_LIB_DIR%\c_string.c" "string source" "c_string.c"
 
 :: Update system environment variables
 echo.
