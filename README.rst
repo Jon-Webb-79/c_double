@@ -204,7 +204,7 @@ After installation, you can use the library in three ways:
 
 3. **Direct Integration**:
 
-  Copy ``c_double.c`` and ``c_float.h`` directly into your project along with ``c_string.c`` and ``c_string.h``.
+  Copy ``c_double.c`` and ``c_double.h`` directly into your project along with ``c_string.c`` and ``c_string.h``.
 
 Troubleshooting
 ---------------

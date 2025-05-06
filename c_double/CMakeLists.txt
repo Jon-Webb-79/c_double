@@ -49,7 +49,7 @@ if(BUILD_STATIC)
         c_string.c
     )
     
-    target_include_directories(c_float 
+    target_include_directories(c_double
         PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/c_double/include
     )
@@ -86,7 +86,7 @@ else()
     target_link_libraries(c_double PUBLIC m)
     
     if(WIN32)
-        set_target_properties(c_float
+        set_target_properties(c_double
             PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug"
             LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug"
