@@ -65,7 +65,7 @@ install_file() {
 }
 
 # Install c_float files
-echo "Processing c_float library files..."
+echo "Processing c_double library files..."
 install_file "../../c_double/c_double.h" "$INCLUDE_DIR/c_double.h" "float header" || exit 1
 install_file "../../c_double/c_double.c" "$LIB_DIR/c_double.c" "float source" || exit 1
 
